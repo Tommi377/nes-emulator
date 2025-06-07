@@ -1,3 +1,5 @@
+use num_enum::TryFromPrimitive;
+
 use crate::utils::set_bit;
 
 pub struct CPU {
@@ -21,17 +23,19 @@ impl CPU {
     self.pc = 0;
     
     loop {
-      let opscode = self.get_and_increment_pc(&program);
+      let opcode_number = self.get_and_increment_pc(&program);
+      let opcode = OpCode::try_from(opcode_number).unwrap();
 
-      match opscode {
-        0xA9 => {
+
+      match opcode {
+        OpCode::LDA_IMMEDIATE => {
           let param = self.get_and_increment_pc(&program);
           self.lda(param);
         }
-        0xAA => {
+        OpCode::TAX_IMPLIED => {
           self.tax();
         }
-        0x00 => {
+        OpCode::BRK_IMPLIED => {
           return;
         }
         _ => todo!()
@@ -50,8 +54,8 @@ impl CPU {
   }
   
   fn update_zero_and_negative_flags(&mut self, result: u8) {
-    self.status = set_bit(self.status, StatusFlags::Zero as u8, result == 0);
-    self.status = set_bit(self.status, StatusFlags::Negative as u8, result & 0b1000_0000 != 0);
+    self.status = set_bit(self.status, StatusFlag::Zero as u8, result == 0);
+    self.status = set_bit(self.status, StatusFlag::Negative as u8, result & 0b1000_0000 != 0);
   }
 
   fn get_and_increment_pc(&mut self, program: &Vec<u8>) -> u8 {
@@ -116,7 +120,8 @@ mod test {
 }
 
 #[allow(dead_code)]
-pub enum StatusFlags {
+#[repr(u8)]
+pub enum StatusFlag {
   Carry = 0b0000_0001,
   Zero = 0b0000_0010,
   InterruptDisable = 0b0000_0100,
@@ -125,4 +130,14 @@ pub enum StatusFlags {
   // Status flag 0b0010_0000 does nothing
   Overflow = 0b0100_0000,
   Negative = 0b1000_0000
+}
+
+#[allow(non_camel_case_types)]
+#[derive(TryFromPrimitive)]
+#[repr(u8)]
+pub enum OpCode {
+  LDA_IMMEDIATE = 0xA9,
+  TAX_IMPLIED = 0xAA,
+  INX_IMPLIED = 0xE8,
+  BRK_IMPLIED = 0x00,
 }
