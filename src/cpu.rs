@@ -1,3 +1,5 @@
+use crate::utils::set_bit;
+
 pub struct CPU {
   pub pc: u8,
   pub status: u8,
@@ -24,34 +26,10 @@ impl CPU {
       match opscode {
         0xA9 => {
           let param = self.get_and_increment_pc(&program);
-          self.reg_a = param;
-
-          if self.reg_a == 0 {
-            self.status = self.status | 0b0000_0010;
-          } else {
-            self.status = self.status & 0b1111_1101;
-          }
-
-          if self.reg_a & 0b1000_0000 != 0 {
-            self.status = self.status | 0b1000_0000;
-          } else {
-            self.status = self.status & 0b0111_1111;
-          }
+          self.lda(param);
         }
         0xAA => {
-          self.reg_x = self.reg_a;
-
-          if self.reg_x == 0 {
-            self.status = self.status | 0b0000_0010;
-          } else {
-            self.status = self.status & 0b1111_1101;
-          }
-
-          if self.reg_x & 0b1000_0000 != 0 {
-            self.status = self.status | 0b1000_0000;
-          } else {
-            self.status = self.status & 0b0111_1111;
-          }
+          self.tax();
         }
         0x00 => {
           return;
@@ -59,6 +37,21 @@ impl CPU {
         _ => todo!()
       }
     }
+  }
+
+  fn lda(&mut self, value: u8) {
+    self.reg_a = value;
+    self.update_zero_and_negative_flags(self.reg_a);
+  }
+
+  fn tax(&mut self) {
+    self.reg_x = self.reg_a;
+    self.update_zero_and_negative_flags(self.reg_x);
+  }
+  
+  fn update_zero_and_negative_flags(&mut self, result: u8) {
+    self.status = set_bit(self.status, StatusFlags::Zero as u8, result == 0);
+    self.status = set_bit(self.status, StatusFlags::Negative as u8, result & 0b1000_0000 != 0);
   }
 
   fn get_and_increment_pc(&mut self, program: &Vec<u8>) -> u8 {
@@ -120,4 +113,16 @@ mod test {
     cpu.interpret(vec![0xaa, 0x00]);
     assert!(cpu.status & 0b1000_0000 != 0);
   }
+}
+
+#[allow(dead_code)]
+pub enum StatusFlags {
+  Carry = 0b0000_0001,
+  Zero = 0b0000_0010,
+  InterruptDisable = 0b0000_0100,
+  Decimal = 0b0000_1000,
+  Break = 0b0001_0000,
+  // Status flag 0b0010_0000 does nothing
+  Overflow = 0b0100_0000,
+  Negative = 0b1000_0000
 }
