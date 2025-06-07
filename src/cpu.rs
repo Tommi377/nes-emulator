@@ -32,13 +32,18 @@ impl CPU {
           let param = self.get_and_increment_pc(&program);
           self.lda(param);
         }
-        OpCode::TAX_IMPLIED => {
-          self.tax();
+        OpCode::TAX_IMPLIED => self.tax(),
+        OpCode::INX_IMPLIED => {
+          if self.reg_x == 0b1111_1111 {
+            self.reg_x = 0; // Integer overflow
+          } else {
+            self.reg_x += 1;
+          }
+          self.update_zero_and_negative_flags(self.reg_x);
         }
         OpCode::BRK_IMPLIED => {
           return;
         }
-        _ => todo!()
       }
     }
   }
@@ -117,6 +122,33 @@ mod test {
     cpu.interpret(vec![0xaa, 0x00]);
     assert!(cpu.status & 0b1000_0000 != 0);
   }
+
+  #[test]
+  fn test_5_ops_working_together() {
+    let mut cpu = CPU::new();
+    cpu.interpret(vec![0xa9, 0xc0, 0xaa, 0xe8, 0x00]);
+
+    assert_eq!(cpu.reg_x, 0xc1)
+  }
+
+  #[test]
+  fn test_inx_overflow() {
+    let mut cpu = CPU::new();
+    cpu.reg_x = 0xff;
+    cpu.interpret(vec![0xe8, 0xe8, 0x00]);
+
+    assert_eq!(cpu.reg_x, 1)
+  }
+}
+
+#[allow(non_camel_case_types)]
+#[derive(TryFromPrimitive)]
+#[repr(u8)]
+pub enum OpCode {
+  LDA_IMMEDIATE = 0xA9,
+  TAX_IMPLIED = 0xAA,
+  INX_IMPLIED = 0xE8,
+  BRK_IMPLIED = 0x00,
 }
 
 #[allow(dead_code)]
@@ -130,14 +162,4 @@ pub enum StatusFlag {
   // Status flag 0b0010_0000 does nothing
   Overflow = 0b0100_0000,
   Negative = 0b1000_0000
-}
-
-#[allow(non_camel_case_types)]
-#[derive(TryFromPrimitive)]
-#[repr(u8)]
-pub enum OpCode {
-  LDA_IMMEDIATE = 0xA9,
-  TAX_IMPLIED = 0xAA,
-  INX_IMPLIED = 0xE8,
-  BRK_IMPLIED = 0x00,
 }
