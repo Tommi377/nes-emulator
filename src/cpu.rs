@@ -1,6 +1,6 @@
-use num_enum::TryFromPrimitive;
+mod op;
 
-use crate::utils::set_bit;
+use crate::{cpu::op::{AddressingMode, OP}, utils::set_bit};
 
 pub struct CPU {
   pub pc: u16,
@@ -44,39 +44,58 @@ impl CPU {
 
   pub fn run(&mut self) {
     loop {
-      let opcode_number = self.mem_read_and_increment_pc();
-      let opcode = OpCode::try_from(opcode_number).unwrap();
+      let opcode: OP = self.mem_read_pc_u8().into();
 
-
-      match opcode {
-        OpCode::LDA_IMMEDIATE => {
-          self.lda(&AddressingMode::Immediate);
-        }
-        OpCode::TAX_IMPLIED => self.tax(),
-        OpCode::INX_IMPLIED => {
-          if self.reg_x == 0b1111_1111 {
-            self.reg_x = 0; // Integer overflow
-          } else {
-            self.reg_x += 1;
-          }
-          self.update_zero_and_negative_flags(self.reg_x);
-        }
-        OpCode::BRK_IMPLIED => {
+      match opcode.op {
+        "LDA" => self.lda(&opcode.mode),
+        "TAX" => self.tax(),
+        "INX" => self.inx(),
+        "BRK" => {
           return;
         }
+        _ => panic!("Unknown opcode: {} at PC: 0x{:04X}", opcode.op, self.pc),
       }
     }
   }
 
-  fn get_address(&self, addressing_mode: &AddressingMode) {
+  fn get_address(&mut self, addressing_mode: &AddressingMode) -> u16 {
     match addressing_mode {
-      AddressingMode::Immediate => self.pc,
-      _ => todo!()
-    };
+      AddressingMode::Immediate => {
+        self.pc += 1;
+        self.pc - 1
+      },
+      AddressingMode::ZeroPage => self.mem_read_pc_u8() as u16,
+      AddressingMode::ZeroPage_X => self.mem_read_pc_u8().wrapping_add(self.reg_x) as u16,
+      AddressingMode::ZeroPage_Y => self.mem_read_pc_u8().wrapping_add(self.reg_y) as u16,
+      AddressingMode::Absolute => self.mem_read_pc_u16(),
+      AddressingMode::Absolute_X => self.mem_read_pc_u16().wrapping_add(self.reg_x as u16),
+      AddressingMode::Absolute_Y => self.mem_read_pc_u16().wrapping_add(self.reg_y as u16),
+      AddressingMode::Indirect_X => {
+        let ptr = self.mem_read_pc_u8().wrapping_add(self.reg_x);
+        let lo = self.mem_read_u8(ptr as u16) as u16;
+        let hi = self.mem_read_u8(ptr.wrapping_add(1) as u16) as u16;
+        hi << 8 | lo
+      }
+      AddressingMode::Indirect_Y =>  {
+        let ptr = self.mem_read_pc_u8();
+        let lo = self.mem_read_u8(ptr as u16) as u16;
+        let hi = self.mem_read_u8((ptr).wrapping_add(1) as u16) as u16;
+        let deref_base = hi << 8 | lo;
+        let deref = deref_base.wrapping_add(self.reg_y as u16);
+        deref
+      }
+      AddressingMode::NoneAddressing => panic!("mode {:?} is not supported", addressing_mode),
+    }
   }
 
   fn mem_read_u8(&self, addr: u16) -> u8 {
     self.memory[addr as usize]
+  }
+
+  fn mem_read_pc_u8(&mut self) -> u8 {
+    let value = self.mem_read_u8(self.pc);
+    self.pc += 1;
+    value
   }
 
   fn mem_write_u8(&mut self, addr: u16, data: u8) {
@@ -89,6 +108,13 @@ impl CPU {
     (hi << 8) | lo
   }
 
+  fn mem_read_pc_u16(&mut self) -> u16 {
+    let value = self.mem_read_u16(self.pc);
+    self.pc += 2;
+    value
+  }
+
+
   fn mem_write_u16(&mut self, addr: u16, data: u16) {
     let lo = (data & 0b1111_1111) as u8;
     let hi = (data >> 8) as u8;
@@ -97,13 +123,18 @@ impl CPU {
   }
 
   fn lda(&mut self, addressing_mode: &AddressingMode) {
-    self.get_address(addressing_mode);
-    self.reg_a = self.mem_read_and_increment_pc();
+    let addr= self.get_address(addressing_mode);
+    self.reg_a = self.mem_read_u8(addr);
     self.update_zero_and_negative_flags(self.reg_a);
   }
 
   fn tax(&mut self) {
     self.reg_x = self.reg_a;
+    self.update_zero_and_negative_flags(self.reg_x);
+  }
+
+  fn inx(&mut self) {
+    self.reg_x = self.reg_x.wrapping_add(1);
     self.update_zero_and_negative_flags(self.reg_x);
   }
   
@@ -112,11 +143,11 @@ impl CPU {
     self.status = set_bit(self.status, StatusFlag::Negative as u8, result & 0b1000_0000 != 0);
   }
 
-  fn mem_read_and_increment_pc(&mut self) -> u8 {
-    let value = self.mem_read_u8(self.pc);
-    self.pc += 1;
-    value
-  }
+  // fn mem_read_and_increment_pc(&mut self) -> u8 {
+  //   let value = self.mem_read_u8(self.pc);
+  //   self.pc += 1;
+  //   value
+  // }
 }
 
 #[cfg(test)]
@@ -161,6 +192,16 @@ mod test {
     assert_eq!(cpu.reg_a, 0x05);
     assert!(cpu.status & 0b0000_0010 == 0b00);
     assert!(cpu.status & 0b1000_0000 == 0);
+  }
+
+  #[test]
+  fn test_0xa5_lda_zero_page() {
+      let mut cpu = CPU::new();
+      cpu.mem_write_u8(0x10, 0x55);
+
+      cpu.load_and_run(vec![0xa5, 0x10, 0x00]);
+
+      assert_eq!(cpu.reg_a, 0x55);
   }
 
   #[test]
@@ -231,16 +272,6 @@ mod test {
   }
 }
 
-#[allow(non_camel_case_types)]
-#[derive(TryFromPrimitive)]
-#[repr(u8)]
-pub enum OpCode {
-  LDA_IMMEDIATE = 0xA9,
-  TAX_IMPLIED = 0xAA,
-  INX_IMPLIED = 0xE8,
-  BRK_IMPLIED = 0x00,
-}
-
 #[allow(dead_code)]
 #[repr(u8)]
 pub enum StatusFlag {
@@ -252,19 +283,4 @@ pub enum StatusFlag {
   // Status flag 0b0010_0000 does nothing
   Overflow = 0b0100_0000,
   Negative = 0b1000_0000
-}
-
-#[derive(Debug)]
-#[allow(non_camel_case_types)]
-pub enum AddressingMode {
-   Immediate,
-   ZeroPage,
-   ZeroPage_X,
-   ZeroPage_Y,
-   Absolute,
-   Absolute_X,
-   Absolute_Y,
-   Indirect_X,
-   Indirect_Y,
-   NoneAddressing,
 }
