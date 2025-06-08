@@ -150,6 +150,19 @@ impl CPU {
   // }
 }
 
+#[allow(dead_code)]
+#[repr(u8)]
+pub enum StatusFlag {
+  Carry = 0b0000_0001,
+  Zero = 0b0000_0010,
+  InterruptDisable = 0b0000_0100,
+  Decimal = 0b0000_1000,
+  Break = 0b0001_0000,
+  // Status flag 0b0010_0000 does nothing
+  Overflow = 0b0100_0000,
+  Negative = 0b1000_0000
+}
+
 #[cfg(test)]
 mod test {
   use super::*;
@@ -198,10 +211,72 @@ mod test {
   fn test_0xa5_lda_zero_page() {
       let mut cpu = CPU::new();
       cpu.mem_write_u8(0x10, 0x55);
-
       cpu.load_and_run(vec![0xa5, 0x10, 0x00]);
-
       assert_eq!(cpu.reg_a, 0x55);
+  }
+
+  #[test]
+  fn test_0xa5_lda_zero_page_x() {
+      let mut cpu = CPU::new();
+
+      let ptr: u8 = 0x10;
+      let offset: u8 = 0x10;
+      let data: u8 = 0x55;
+
+      cpu.mem_write_u8((ptr + offset) as u16, data);
+
+      cpu.load(vec![0xb5, ptr, 0x00]);
+      cpu.reset();
+
+      cpu.reg_x = offset;
+      cpu.run();
+
+      assert_eq!(cpu.reg_a, data);
+  }
+
+
+  #[test]
+  fn test_0xa5_lda_absolute() {
+    let mut cpu = CPU::new();
+    cpu.mem_write_u8(0x1234, 0x55);
+    cpu.load_and_run(vec![0xad, 0x34, 0x12, 0x00]);
+    assert_eq!(cpu.reg_a, 0x55);
+  }
+
+  #[test]
+  fn test_0xa5_lda_absolute_x() {
+    let mut cpu = CPU::new();
+    cpu.mem_write_u8(0x1235, 0x55);
+    cpu.load(vec![0xbd, 0x34, 0x12, 0x00]);
+    cpu.reset();
+
+    cpu.reg_x = 0x01; // Offset
+    cpu.run();
+  
+    assert_eq!(cpu.reg_a, 0x55);
+  }
+
+  #[test]
+  fn test_0xa5_lda_absolute_y() {
+    let mut cpu = CPU::new();
+    cpu.mem_write_u8(0x1235, 0x55);
+    cpu.load(vec![0xb9, 0x34, 0x12, 0x00]);
+    cpu.reset();
+
+    cpu.reg_y = 0x01; // Offset
+    cpu.run();
+  
+    assert_eq!(cpu.reg_a, 0x55);
+  }
+
+  #[test]
+  fn test_0xa5_lda_indirect_x() {
+    todo!()
+  }
+
+  #[test]
+  fn test_0xa5_lda_indirect_y() {
+    todo!()
   }
 
   #[test]
@@ -270,17 +345,4 @@ mod test {
 
     assert_eq!(cpu.reg_x, 0xc1)
   }
-}
-
-#[allow(dead_code)]
-#[repr(u8)]
-pub enum StatusFlag {
-  Carry = 0b0000_0001,
-  Zero = 0b0000_0010,
-  InterruptDisable = 0b0000_0100,
-  Decimal = 0b0000_1000,
-  Break = 0b0001_0000,
-  // Status flag 0b0010_0000 does nothing
-  Overflow = 0b0100_0000,
-  Negative = 0b1000_0000
 }
