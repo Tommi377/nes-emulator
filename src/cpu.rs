@@ -50,8 +50,7 @@ impl CPU {
 
       match opcode {
         OpCode::LDA_IMMEDIATE => {
-          let param = self.mem_read_and_increment_pc();
-          self.lda(param);
+          self.lda(&AddressingMode::Immediate);
         }
         OpCode::TAX_IMPLIED => self.tax(),
         OpCode::INX_IMPLIED => {
@@ -67,6 +66,13 @@ impl CPU {
         }
       }
     }
+  }
+
+  fn get_address(&self, addressing_mode: &AddressingMode) {
+    match addressing_mode {
+      AddressingMode::Immediate => self.pc,
+      _ => todo!()
+    };
   }
 
   fn mem_read_u8(&self, addr: u16) -> u8 {
@@ -90,8 +96,9 @@ impl CPU {
     self.mem_write_u8(addr + 1, hi);
   }
 
-  fn lda(&mut self, value: u8) {
-    self.reg_a = value;
+  fn lda(&mut self, addressing_mode: &AddressingMode) {
+    self.get_address(addressing_mode);
+    self.reg_a = self.mem_read_and_increment_pc();
     self.update_zero_and_negative_flags(self.reg_a);
   }
 
@@ -245,4 +252,19 @@ pub enum StatusFlag {
   // Status flag 0b0010_0000 does nothing
   Overflow = 0b0100_0000,
   Negative = 0b1000_0000
+}
+
+#[derive(Debug)]
+#[allow(non_camel_case_types)]
+pub enum AddressingMode {
+   Immediate,
+   ZeroPage,
+   ZeroPage_X,
+   ZeroPage_Y,
+   Absolute,
+   Absolute_X,
+   Absolute_Y,
+   Indirect_X,
+   Indirect_Y,
+   NoneAddressing,
 }
