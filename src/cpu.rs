@@ -142,12 +142,6 @@ impl CPU {
     self.status = set_bit(self.status, StatusFlag::Zero as u8, result == 0);
     self.status = set_bit(self.status, StatusFlag::Negative as u8, result & 0b1000_0000 != 0);
   }
-
-  // fn mem_read_and_increment_pc(&mut self) -> u8 {
-  //   let value = self.mem_read_u8(self.pc);
-  //   self.pc += 1;
-  //   value
-  // }
 }
 
 #[allow(dead_code)]
@@ -271,12 +265,44 @@ mod test {
 
   #[test]
   fn test_0xa5_lda_indirect_x() {
-    todo!()
+    let mut cpu = CPU::new();
+
+    let indir_ptr: u8 = 0x10;
+    let ptr: u16 = 0x1234;
+    let offset: u8 = 0x10;
+    let data: u8 = 0x55;
+
+    cpu.mem_write_u16((indir_ptr + offset) as u16, ptr);
+    cpu.mem_write_u8(ptr, data);
+
+    cpu.load(vec![0xa1, indir_ptr, 0x00]);
+    cpu.reset();
+
+    cpu.reg_x = offset;
+    cpu.run();
+
+    assert_eq!(cpu.reg_a, data);
   }
 
   #[test]
   fn test_0xa5_lda_indirect_y() {
-    todo!()
+    let mut cpu = CPU::new();
+
+    let indir_ptr: u8 = 0x10;
+    let ptr: u16 = 0x1234;
+    let offset: u8 = 0x10;
+    let data: u8 = 0x55;
+
+    cpu.mem_write_u16(indir_ptr as u16, ptr);
+    cpu.mem_write_u8(ptr + offset as u16, data);
+
+    cpu.load(vec![0xb1, indir_ptr, 0x00]);
+    cpu.reset();
+
+    cpu.reg_y = offset;
+    cpu.run();
+
+    assert_eq!(cpu.reg_a, data);
   }
 
   #[test]
