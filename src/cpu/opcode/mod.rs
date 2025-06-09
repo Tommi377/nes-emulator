@@ -1,12 +1,15 @@
-use crate::{cpu::{opcode::opcode_table::{AddressingMode, OPCODE_TABLE}, CPU}};
+use crate::cpu::{
+  CPU,
+  opcode::opcode_table::{AddressingMode, OPCODE_TABLE},
+};
 
-pub mod opcode_table;
 pub mod arithmetic;
-pub mod register_transfers;
 pub mod increment_decrements;
+pub mod load_store;
+pub mod opcode_table;
+pub mod register_transfers;
 pub mod status_flag_changes;
 pub mod system_functions;
-pub mod load_store;
 
 #[derive(Debug, Clone, Copy)]
 #[allow(dead_code)]
@@ -15,7 +18,7 @@ pub struct OP {
   pub op: fn(&mut CPU, AddressingMode),
   pub mode: AddressingMode,
   pub bytes: u8,
-  pub cycles: u8
+  pub cycles: u8,
 }
 
 impl OP {

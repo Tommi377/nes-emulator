@@ -1,22 +1,29 @@
-use crate::cpu::{opcode::opcode_table::AddressingMode, StatusFlag, CPU};
-
+use crate::cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode};
 
 pub(crate) fn adc(cpu: &mut CPU, mode: AddressingMode) {
   let address = cpu.get_address(&mode);
   let value = cpu.mem_read_u8(address);
-  let carry_in = if cpu.get_flag(StatusFlag::Carry) { 1u8 } else { 0 };
+  let carry_in = if cpu.get_flag(StatusFlag::Carry) {
+    1u8
+  } else {
+    0
+  };
 
   let (temp_result, temp_carry) = cpu.reg_a.overflowing_add(value);
   let (result, carry_from_carry) = temp_result.overflowing_add(carry_in);
   let carry_flag = temp_carry || carry_from_carry;
 
-  let overflow_flag = (value ^ result) & ( cpu.reg_a ^result ) & 0b1000_0000 != 0;
+  let overflow_flag = (value ^ result) & (cpu.reg_a ^ result) & 0b1000_0000 != 0;
 
   cpu.reg_a = result;
 
   cpu.status &= !(StatusFlag::Carry as u8 | StatusFlag::Overflow as u8);
-  if carry_flag     { cpu.status |= StatusFlag::Carry as u8;      }
-  if overflow_flag  { cpu.status |= StatusFlag::Overflow as u8;   }
+  if carry_flag {
+    cpu.status |= StatusFlag::Carry as u8;
+  }
+  if overflow_flag {
+    cpu.status |= StatusFlag::Overflow as u8;
+  }
   cpu.update_zero_and_negative_flags(cpu.reg_a);
 }
 
@@ -32,9 +39,9 @@ mod adc_tests {
     cpu.mem_write_u8(0x10, 0x30);
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10); // Address for zero page mode
-    
+
     adc(&mut cpu, AddressingMode::ZeroPage);
-    
+
     assert_eq!(cpu.reg_a, 0x60);
     assert_eq!(cpu.status & StatusFlag::Carry as u8, 0);
     assert_eq!(cpu.status & StatusFlag::Zero as u8, 0);
@@ -50,9 +57,9 @@ mod adc_tests {
     cpu.mem_write_u8(0x10, 0x30);
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
-    
+
     adc(&mut cpu, AddressingMode::ZeroPage);
-    
+
     assert_eq!(cpu.reg_a, 0x81); // 0x50 + 0x30 + 1 = 0x81
     assert_eq!(cpu.status & StatusFlag::Carry as u8, 0);
     assert_ne!(cpu.status & StatusFlag::Negative as u8, 0);
@@ -65,9 +72,9 @@ mod adc_tests {
     cpu.mem_write_u8(0x10, 0x01);
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
-    
+
     adc(&mut cpu, AddressingMode::ZeroPage);
-    
+
     assert_eq!(cpu.reg_a, 0x00); // 0xFF + 0x01 = 0x100, result is 0x00
     assert_ne!(cpu.status & StatusFlag::Carry as u8, 0); // Carry should be set
     assert_ne!(cpu.status & StatusFlag::Zero as u8, 0); // Zero should be set
@@ -81,9 +88,9 @@ mod adc_tests {
     cpu.mem_write_u8(0x10, 0x01); // +1
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
-    
+
     adc(&mut cpu, AddressingMode::ZeroPage);
-    
+
     assert_eq!(cpu.reg_a, 0x80); // Result is -128 in two's complement
     assert_ne!(cpu.status & StatusFlag::Overflow as u8, 0); // Overflow should be set
     assert_ne!(cpu.status & StatusFlag::Negative as u8, 0);
@@ -97,9 +104,9 @@ mod adc_tests {
     cpu.mem_write_u8(0x10, 0xFF); // -1
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
-    
+
     adc(&mut cpu, AddressingMode::ZeroPage);
-    
+
     assert_eq!(cpu.reg_a, 0x7F); // Result is +127
     assert_ne!(cpu.status & StatusFlag::Overflow as u8, 0); // Overflow should be set
     assert_ne!(cpu.status & StatusFlag::Carry as u8, 0); // Carry should be set (0x80 + 0xFF = 0x17F)
@@ -113,9 +120,9 @@ mod adc_tests {
     cpu.mem_write_u8(0x10, 0x7F); // +127
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
-    
+
     adc(&mut cpu, AddressingMode::ZeroPage);
-    
+
     assert_eq!(cpu.reg_a, 0xFF); // -1
     assert_eq!(cpu.status & StatusFlag::Overflow as u8, 0); // No overflow when adding different signs
     assert_ne!(cpu.status & StatusFlag::Negative as u8, 0);
@@ -128,9 +135,9 @@ mod adc_tests {
     cpu.reg_a = 0x10;
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x20); // Immediate value
-    
+
     adc(&mut cpu, AddressingMode::Immediate);
-    
+
     assert_eq!(cpu.reg_a, 0x30);
     assert_eq!(cpu.status & StatusFlag::Carry as u8, 0);
     assert_eq!(cpu.status & StatusFlag::Zero as u8, 0);

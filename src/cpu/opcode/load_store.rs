@@ -1,7 +1,7 @@
-use crate::cpu::{opcode::opcode_table::AddressingMode, CPU};
+use crate::cpu::{CPU, opcode::opcode_table::AddressingMode};
 
 pub(crate) fn lda(cpu: &mut CPU, mode: AddressingMode) {
-  let addr= cpu.get_address(&mode);
+  let addr = cpu.get_address(&mode);
   cpu.reg_a = cpu.mem_read_u8(addr);
   cpu.update_zero_and_negative_flags(cpu.reg_a);
 }
@@ -90,7 +90,7 @@ mod lda_test {
 
     cpu.reg_x = 0x01; // Offset
     cpu.run();
-  
+
     assert_eq!(cpu.reg_a, 0x55);
   }
 
@@ -103,7 +103,7 @@ mod lda_test {
 
     cpu.reg_y = 0x01; // Offset
     cpu.run();
-  
+
     assert_eq!(cpu.reg_a, 0x55);
   }
 
@@ -221,7 +221,7 @@ mod ldx_test {
 
     cpu.reg_y = 1; // Offset
     cpu.run();
-  
+
     assert_eq!(cpu.reg_x, 0x55);
   }
 
@@ -233,7 +233,7 @@ mod ldx_test {
   }
 
   #[test]
-  fn test_0xa2_ldx_neg_flag () {
+  fn test_0xa2_ldx_neg_flag() {
     let mut cpu = CPU::new();
     cpu.load_and_run(vec![0xa2, 0xFF, 0x00]);
     assert!(cpu.status & 0b1000_0000 != 0);
@@ -297,7 +297,7 @@ mod ldy_test {
 
     cpu.reg_x = 1; // Offset
     cpu.run();
-  
+
     assert_eq!(cpu.reg_y, 0x55);
   }
 
@@ -328,7 +328,7 @@ mod sta_test {
 
     cpu.reg_a = 0x55;
     cpu.run();
-  
+
     assert_eq!(cpu.mem_read_u8(0x10), 0x55);
   }
 
@@ -358,7 +358,7 @@ mod sta_test {
 
     cpu.reg_a = 0x55;
     cpu.run();
-  
+
     assert_eq!(cpu.mem_read_u8(0x1234), 0x55);
   }
 
@@ -371,7 +371,7 @@ mod sta_test {
     cpu.reg_x = 0x01; // Offset
     cpu.reg_a = 0x55; // Data to store
     cpu.run();
-  
+
     assert_eq!(cpu.mem_read_u8(0x1235), 0x55);
   }
 
@@ -385,7 +385,7 @@ mod sta_test {
     cpu.reg_y = 0x01; // Offset
     cpu.reg_a = 0x55; // Data to store
     cpu.run();
-  
+
     assert_eq!(cpu.mem_read_u8(0x1235), 0x55);
   }
 
@@ -442,7 +442,7 @@ mod stx_test {
 
     cpu.reg_x = 0x55;
     cpu.run();
-  
+
     assert_eq!(cpu.mem_read_u8(0x10), 0x55);
   }
 
@@ -472,7 +472,7 @@ mod stx_test {
 
     cpu.reg_x = 0x55;
     cpu.run();
-  
+
     assert_eq!(cpu.mem_read_u8(0x1234), 0x55);
   }
 }
@@ -489,7 +489,7 @@ mod sty_test {
 
     cpu.reg_y = 0x55;
     cpu.run();
-  
+
     assert_eq!(cpu.mem_read_u8(0x10), 0x55);
   }
 
@@ -519,7 +519,7 @@ mod sty_test {
 
     cpu.reg_y = 0x55;
     cpu.run();
-  
+
     assert_eq!(cpu.mem_read_u8(0x1234), 0x55);
   }
 }

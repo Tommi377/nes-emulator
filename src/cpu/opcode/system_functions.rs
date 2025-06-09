@@ -1,4 +1,7 @@
-use crate::{cpu::{opcode::opcode_table::AddressingMode, StatusFlag, CPU}, utils::set_bit};
+use crate::{
+  cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode},
+  utils::set_bit,
+};
 
 pub(crate) fn brk(cpu: &mut CPU, _mode: AddressingMode) {
   cpu.status = set_bit(cpu.status, StatusFlag::Break as u8, true);

@@ -1,12 +1,14 @@
-use crate::cpu::opcode::{arithmetic::*, increment_decrements::*, load_store::*, register_transfers::*, status_flag_changes::*, system_functions::*, OP};
-
-
-#[allow(non_camel_case_types)]
-#[allow(dead_code)]
+use crate::cpu::opcode::{
+  OP, arithmetic::*, increment_decrements::*, load_store::*, register_transfers::*,
+  status_flag_changes::*, system_functions::*,
+};
 
 // Instruction Set for the Obelisk 6502 CPU
 // https://www.nesdev.org/obelisk-6502-guide/reference.html
 
+#[allow(non_camel_case_types)]
+#[allow(dead_code)]
+#[rustfmt::skip]
 pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   use AddressingMode::*;
 

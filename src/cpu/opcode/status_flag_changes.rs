@@ -1,4 +1,4 @@
-use crate::cpu::{opcode::opcode_table::AddressingMode, StatusFlag, CPU};
+use crate::cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode};
 
 pub(crate) fn clc(cpu: &mut CPU, _mode: AddressingMode) {
   cpu.status &= !(StatusFlag::Carry as u8);

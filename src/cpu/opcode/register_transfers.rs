@@ -1,4 +1,4 @@
-use crate::cpu::{opcode::{opcode_table::AddressingMode}, CPU};
+use crate::cpu::{CPU, opcode::opcode_table::AddressingMode};
 
 pub(crate) fn tax(cpu: &mut CPU, _mode: AddressingMode) {
   cpu.reg_x = cpu.reg_a;
@@ -38,7 +38,7 @@ mod transfer_test {
     let mut cpu = CPU::new();
     cpu.load(vec![0xaa, 0x00]);
     cpu.reset();
-  
+
     cpu.reg_a = 5;
     cpu.run();
 
@@ -61,7 +61,7 @@ mod transfer_test {
   #[test]
   fn test_0xaa_tax_neg_flag() {
     let mut cpu = CPU::new();
-  
+
     cpu.load(vec![0xaa, 0x00]);
     cpu.reset();
 
@@ -78,12 +78,12 @@ mod transfer_test {
 
     cpu.reg_a = 5;
     cpu.run();
-  
+
     assert_eq!(cpu.reg_y, 0x05);
     assert!(cpu.status & 0b0000_0010 == 0b00);
     assert!(cpu.status & 0b1000_0000 == 0);
   }
-  
+
   #[test]
   fn test_0xba_tsx_transfer() {
     let mut cpu = CPU::new();
@@ -92,7 +92,7 @@ mod transfer_test {
 
     cpu.reg_sp = 5;
     cpu.run();
-  
+
     assert_eq!(cpu.reg_x, 0x05);
     assert!(cpu.status & 0b0000_0010 == 0b00);
     assert!(cpu.status & 0b1000_0000 == 0);
@@ -106,7 +106,7 @@ mod transfer_test {
 
     cpu.reg_x = 5;
     cpu.run();
-  
+
     assert_eq!(cpu.reg_a, 0x05);
     assert!(cpu.status & 0b0000_0010 == 0b00);
     assert!(cpu.status & 0b1000_0000 == 0);
@@ -120,7 +120,7 @@ mod transfer_test {
 
     cpu.reg_x = 5;
     cpu.run();
-  
+
     assert_eq!(cpu.reg_sp, 0x05);
     assert!(cpu.status & 0b0000_0010 == 0b00);
     assert!(cpu.status & 0b1000_0000 == 0);
@@ -134,7 +134,7 @@ mod transfer_test {
 
     cpu.reg_y = 5;
     cpu.run();
-  
+
     assert_eq!(cpu.reg_a, 0x05);
     assert!(cpu.status & 0b0000_0010 == 0b00);
     assert!(cpu.status & 0b1000_0000 == 0);

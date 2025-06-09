@@ -1,4 +1,4 @@
-use crate::cpu::{opcode::{opcode_table::AddressingMode}, CPU};
+use crate::cpu::{CPU, opcode::opcode_table::AddressingMode};
 
 pub(crate) fn inc(cpu: &mut CPU, mode: AddressingMode) {
   let addr = cpu.get_address(&mode);
@@ -34,7 +34,7 @@ pub(crate) fn dey(cpu: &mut CPU, _mode: AddressingMode) {
 #[cfg(test)]
 mod increment_decrements_tests {
   use super::*;
-  use crate::cpu::{opcode::opcode_table::AddressingMode, StatusFlag};
+  use crate::cpu::{StatusFlag, opcode::opcode_table::AddressingMode};
 
   // INC Tests
   mod inc_tests {

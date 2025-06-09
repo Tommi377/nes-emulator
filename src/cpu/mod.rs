@@ -1,6 +1,9 @@
 pub mod opcode;
 
-use crate::{cpu::opcode::{opcode_table::AddressingMode, OP}, utils::set_bit};
+use crate::{
+  cpu::opcode::{OP, opcode_table::AddressingMode},
+  utils::set_bit,
+};
 
 pub struct CPU {
   pub pc: u16,
@@ -31,7 +34,7 @@ impl CPU {
   }
 
   pub fn load(&mut self, program: Vec<u8>) {
-    self.memory[0x8000 .. (0x8000 + program.len())].copy_from_slice(&program);
+    self.memory[0x8000..(0x8000 + program.len())].copy_from_slice(&program);
     self.mem_write_u16(0xFFFC, 0x8000);
   }
 
@@ -56,7 +59,7 @@ impl CPU {
       AddressingMode::Immediate => {
         self.pc += 1;
         self.pc - 1
-      },
+      }
       AddressingMode::ZeroPage => self.mem_read_pc_u8() as u16,
       AddressingMode::ZeroPage_X => self.mem_read_pc_u8().wrapping_add(self.reg_x) as u16,
       AddressingMode::ZeroPage_Y => self.mem_read_pc_u8().wrapping_add(self.reg_y) as u16,
@@ -69,7 +72,7 @@ impl CPU {
         let hi = self.mem_read_u8(ptr.wrapping_add(1) as u16) as u16;
         hi << 8 | lo
       }
-      AddressingMode::Indirect_Y =>  {
+      AddressingMode::Indirect_Y => {
         let ptr = self.mem_read_pc_u8();
         let lo = self.mem_read_u8(ptr as u16) as u16;
         let hi = self.mem_read_u8((ptr).wrapping_add(1) as u16) as u16;
@@ -117,10 +120,14 @@ impl CPU {
     self.mem_write_u8(addr, lo);
     self.mem_write_u8(addr + 1, hi);
   }
-  
+
   fn update_zero_and_negative_flags(&mut self, result: u8) {
     self.status = set_bit(self.status, StatusFlag::Zero as u8, result == 0);
-    self.status = set_bit(self.status, StatusFlag::Negative as u8, result & 0b1000_0000 != 0);
+    self.status = set_bit(
+      self.status,
+      StatusFlag::Negative as u8,
+      result & 0b1000_0000 != 0,
+    );
   }
 }
 
@@ -134,7 +141,7 @@ pub enum StatusFlag {
   Break = 0b0001_0000,
   // Status flag 0b0010_0000 does nothing
   Overflow = 0b0100_0000,
-  Negative = 0b1000_0000
+  Negative = 0b1000_0000,
 }
 
 #[cfg(test)]
