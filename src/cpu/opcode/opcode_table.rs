@@ -1,4 +1,4 @@
-use crate::cpu::opcode::{increment_decrements::*, load_store::*, register_transfers::*, system_functions::*, OP};
+use crate::cpu::opcode::{increment_decrements::*, load_store::*, register_transfers::*, status_flag_changes::*, system_functions::*, OP};
 
 
 #[allow(non_camel_case_types)]
@@ -66,6 +66,15 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0x9A] = Some(OP { code: 0x9A, op: txs, mode: NoneAddressing,  bytes: 1, cycles: 2 });
   table[0x98] = Some(OP { code: 0x98, op: tya, mode: NoneAddressing,  bytes: 1, cycles: 2 });
   
+  // Status Flag Changes
+  table[0x18] = Some(OP { code: 0x18, op: clc, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0xD8] = Some(OP { code: 0xD8, op: cld, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0x58] = Some(OP { code: 0x58, op: cli, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0xB8] = Some(OP { code: 0xB8, op: clv, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0x38] = Some(OP { code: 0x38, op: sec, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0xF8] = Some(OP { code: 0xF8, op: sed, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0x78] = Some(OP { code: 0x78, op: sei, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+
   table
 };
 

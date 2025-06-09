@@ -3,8 +3,10 @@ use crate::{cpu::{opcode::opcode_table::{AddressingMode, OPCODE_TABLE}, CPU}};
 pub mod opcode_table;
 pub mod register_transfers;
 pub mod increment_decrements;
+pub mod status_flag_changes;
 pub mod system_functions;
 pub mod load_store;
+pub mod arithmetic;
 
 #[derive(Debug, Clone, Copy)]
 #[allow(dead_code)]
