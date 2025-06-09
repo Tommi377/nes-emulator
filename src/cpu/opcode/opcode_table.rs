@@ -21,6 +21,18 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0xA1] = Some(OP { code: 0xA1, op: lda, mode: Indirect_X,      bytes: 2, cycles: 6 });
   table[0xB1] = Some(OP { code: 0xB1, op: lda, mode: Indirect_Y,      bytes: 2, cycles: 5 /* +1 if page crossed */ });
 
+  table[0xA2] = Some(OP { code: 0xA2, op: ldx, mode: Immediate,       bytes: 2, cycles: 2 });
+  table[0xA6] = Some(OP { code: 0xA6, op: ldx, mode: ZeroPage,        bytes: 2, cycles: 3 });
+  table[0xB6] = Some(OP { code: 0xB6, op: ldx, mode: ZeroPage_Y,      bytes: 2, cycles: 4 });
+  table[0xAE] = Some(OP { code: 0xAE, op: ldx, mode: Absolute,        bytes: 3, cycles: 4 });
+  table[0xBE] = Some(OP { code: 0xBE, op: ldx, mode: Absolute_Y,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
+
+  table[0xA0] = Some(OP { code: 0xA0, op: ldy, mode: Immediate,       bytes: 2, cycles: 2 });
+  table[0xA4] = Some(OP { code: 0xA4, op: ldy, mode: ZeroPage,        bytes: 2, cycles: 3 });
+  table[0xB4] = Some(OP { code: 0xB4, op: ldy, mode: ZeroPage_X,      bytes: 2, cycles: 4 });
+  table[0xAC] = Some(OP { code: 0xAC, op: ldy, mode: Absolute,        bytes: 3, cycles: 4 });
+  table[0xBC] = Some(OP { code: 0xBC, op: ldy, mode: Absolute_X,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
+
   // STA Instructions
   table[0x85] = Some(OP { code: 0x85, op: sta, mode: ZeroPage,        bytes: 2, cycles: 3 });
   table[0x95] = Some(OP { code: 0x95, op: sta, mode: ZeroPage_X,      bytes: 2, cycles: 4 });
