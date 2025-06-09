@@ -4,7 +4,7 @@ use crate::{cpu::{opcode::{AddressingMode, OPCODE_TABLE}, StatusFlag, CPU}, util
 #[allow(dead_code)]
 pub struct OP {
   pub code: u8,
-  pub op: &'static str,
+  pub op: fn(&mut CPU, AddressingMode),
   pub mode: AddressingMode,
   pub bytes: u8,
   pub cycles: u8
@@ -12,70 +12,57 @@ pub struct OP {
 
 impl OP {
   pub fn execute(&self, cpu: &mut CPU) {
-    match self.op {
-      "LDA" => Self::lda(cpu, &self.mode),
-      "STA" => Self::sta(cpu, &self.mode),
-      "INX" => Self::inx(cpu),
-      "BRK" => Self::brk(cpu),
-      "TAX" => Self::tax(cpu),
-      "TAY" => Self::tay(cpu),
-      "TSX" => Self::tsx(cpu),
-      "TXA" => Self::txa(cpu),
-      "TXS" => Self::txs(cpu),
-      "TYA" => Self::tya(cpu),
-
-      _ => panic!("Unknown opcode: {} at PC: 0x{:04X}", self.op, cpu.pc),
-    }
+    (self.op)(cpu, self.mode);
   }
 
 
-  fn lda(cpu: &mut CPU, addressing_mode: &AddressingMode) {
-    let addr= cpu.get_address(addressing_mode);
+  pub(crate) fn lda(cpu: &mut CPU, mode: AddressingMode) {
+    let addr= cpu.get_address(&mode);
     cpu.reg_a = cpu.mem_read_u8(addr);
     cpu.update_zero_and_negative_flags(cpu.reg_a);
   }
 
-  fn sta(cpu: &mut CPU, addressing_mode: &AddressingMode) {
-    let addr = cpu.get_address(addressing_mode);
+  pub(crate) fn sta(cpu: &mut CPU, mode: AddressingMode) {
+    let addr = cpu.get_address(&mode);
     cpu.mem_write_u8(addr, cpu.reg_a);
   }
 
-  fn tax(cpu: &mut CPU) {
+  pub(crate) fn tax(cpu: &mut CPU, _mode: AddressingMode) {
     cpu.reg_x = cpu.reg_a;
     cpu.update_zero_and_negative_flags(cpu.reg_x);
   }
 
-  fn tay(cpu: &mut CPU) {
+  pub(crate) fn tay(cpu: &mut CPU, _mode: AddressingMode) {
     cpu.reg_y = cpu.reg_a;
     cpu.update_zero_and_negative_flags(cpu.reg_y);
   }
 
-  fn tsx(cpu: &mut CPU) {
+  pub(crate) fn tsx(cpu: &mut CPU, _mode: AddressingMode) {
     cpu.reg_x = cpu.reg_sp;
     cpu.update_zero_and_negative_flags(cpu.reg_x);
   }
 
-  fn txa(cpu: &mut CPU) {
+  pub(crate) fn txa(cpu: &mut CPU, _mode: AddressingMode) {
     cpu.reg_a = cpu.reg_x;
     cpu.update_zero_and_negative_flags(cpu.reg_a);
   }
 
-  fn txs(cpu: &mut CPU) {
+  pub(crate) fn txs(cpu: &mut CPU, _mode: AddressingMode) {
     cpu.reg_sp = cpu.reg_x;
     cpu.update_zero_and_negative_flags(cpu.reg_sp);
   }
 
-  fn tya(cpu: &mut CPU) {
+  pub(crate) fn tya(cpu: &mut CPU, _mode: AddressingMode) {
     cpu.reg_a = cpu.reg_y;
     cpu.update_zero_and_negative_flags(cpu.reg_a);
   }
 
-  fn inx(cpu: &mut CPU) {
+  pub(crate) fn inx(cpu: &mut CPU, _mode: AddressingMode) {
     cpu.reg_x = cpu.reg_x.wrapping_add(1);
     cpu.update_zero_and_negative_flags(cpu.reg_x);
   }
 
-  fn brk(cpu: &mut CPU) {
+  pub(crate) fn brk(cpu: &mut CPU, _mode: AddressingMode) {
     cpu.status = set_bit(cpu.status, StatusFlag::Break as u8, true);
   }
 }
