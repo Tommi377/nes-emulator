@@ -1,0 +1,257 @@
+use crate::cpu::{opcode::optable::AddressingMode, CPU};
+
+pub(crate) fn lda(cpu: &mut CPU, mode: AddressingMode) {
+  let addr= cpu.get_address(&mode);
+  cpu.reg_a = cpu.mem_read_u8(addr);
+  cpu.update_zero_and_negative_flags(cpu.reg_a);
+}
+
+pub(crate) fn sta(cpu: &mut CPU, mode: AddressingMode) {
+  let addr = cpu.get_address(&mode);
+  cpu.mem_write_u8(addr, cpu.reg_a);
+}
+
+#[cfg(test)]
+mod lda_test {
+  use super::*;
+
+  #[test]
+  fn test_0xa9_lda_immediate_load_data() {
+    let mut cpu = CPU::new();
+    cpu.load_and_run(vec![0xa9, 0x05, 0x00]);
+    assert_eq!(cpu.reg_a, 0x05);
+    assert!(cpu.status & 0b0000_0010 == 0b00);
+    assert!(cpu.status & 0b1000_0000 == 0);
+  }
+
+  #[test]
+  fn test_0xa5_lda_zero_page() {
+    let mut cpu = CPU::new();
+    cpu.mem_write_u8(0x10, 0x55);
+    cpu.load_and_run(vec![0xa5, 0x10, 0x00]);
+    assert_eq!(cpu.reg_a, 0x55);
+  }
+
+  #[test]
+  fn test_0xb5_lda_zero_page_x() {
+    let mut cpu = CPU::new();
+
+    let ptr: u8 = 0x10;
+    let offset: u8 = 0x10;
+    let data: u8 = 0x55;
+
+    cpu.mem_write_u8((ptr + offset) as u16, data);
+
+    cpu.load(vec![0xb5, ptr, 0x00]);
+    cpu.reset();
+
+    cpu.reg_x = offset;
+    cpu.run();
+
+    assert_eq!(cpu.reg_a, data);
+  }
+
+  #[test]
+  fn test_0xad_lda_absolute() {
+    let mut cpu = CPU::new();
+    cpu.mem_write_u8(0x1234, 0x55);
+    cpu.load_and_run(vec![0xad, 0x34, 0x12, 0x00]);
+    assert_eq!(cpu.reg_a, 0x55);
+  }
+
+  #[test]
+  fn test_0xbd_lda_absolute_x() {
+    let mut cpu = CPU::new();
+    cpu.mem_write_u8(0x1235, 0x55);
+    cpu.load(vec![0xbd, 0x34, 0x12, 0x00]);
+    cpu.reset();
+
+    cpu.reg_x = 0x01; // Offset
+    cpu.run();
+  
+    assert_eq!(cpu.reg_a, 0x55);
+  }
+
+  #[test]
+  fn test_0xb9_lda_absolute_y() {
+    let mut cpu = CPU::new();
+    cpu.mem_write_u8(0x1235, 0x55);
+    cpu.load(vec![0xb9, 0x34, 0x12, 0x00]);
+    cpu.reset();
+
+    cpu.reg_y = 0x01; // Offset
+    cpu.run();
+  
+    assert_eq!(cpu.reg_a, 0x55);
+  }
+
+  #[test]
+  fn test_0xa1_lda_indirect_x() {
+    let mut cpu = CPU::new();
+
+    let indir_ptr: u8 = 0x10;
+    let ptr: u16 = 0x1234;
+    let offset: u8 = 0x10;
+    let data: u8 = 0x55;
+
+    cpu.mem_write_u16((indir_ptr + offset) as u16, ptr);
+    cpu.mem_write_u8(ptr, data);
+
+    cpu.load(vec![0xa1, indir_ptr, 0x00]);
+    cpu.reset();
+
+    cpu.reg_x = offset;
+    cpu.run();
+
+    assert_eq!(cpu.reg_a, data);
+  }
+
+  #[test]
+  fn test_0xb1_lda_indirect_y() {
+    let mut cpu = CPU::new();
+
+    let indir_ptr: u8 = 0x10;
+    let ptr: u16 = 0x1234;
+    let offset: u8 = 0x10;
+    let data: u8 = 0x55;
+
+    cpu.mem_write_u16(indir_ptr as u16, ptr);
+    cpu.mem_write_u8(ptr + offset as u16, data);
+
+    cpu.load(vec![0xb1, indir_ptr, 0x00]);
+    cpu.reset();
+
+    cpu.reg_y = offset;
+    cpu.run();
+
+    assert_eq!(cpu.reg_a, data);
+  }
+
+  #[test]
+  fn test_0xa9_lda_zero_flag() {
+    let mut cpu = CPU::new();
+    cpu.load_and_run(vec![0xa9, 0x00, 0x00]);
+    assert!(cpu.status & 0b0000_0010 == 0b10);
+  }
+
+  #[test]
+  fn test_0xa9_lda_neg_flag() {
+    let mut cpu = CPU::new();
+    cpu.load_and_run(vec![0xa9, 0xFF, 0x00]);
+    assert!(cpu.status & 0b1000_0000 != 0);
+  }
+}
+
+#[cfg(test)]
+mod sta_test {
+  use super::*;
+
+  #[test]
+  fn test_0x85_sta_zero_page() {
+    let mut cpu = CPU::new();
+    cpu.load(vec![0x85, 0x10, 0x00]);
+    cpu.reset();
+
+    cpu.reg_a = 0x55;
+    cpu.run();
+  
+    assert_eq!(cpu.mem_read_u8(0x10), 0x55);
+  }
+
+  #[test]
+  fn test_0x95_sta_zero_page_x() {
+    let mut cpu = CPU::new();
+
+    let ptr: u8 = 0x10;
+    let offset: u8 = 0x10;
+    let data: u8 = 0x55;
+
+    cpu.load(vec![0x95, ptr, 0x00]);
+    cpu.reset();
+
+    cpu.reg_x = offset;
+    cpu.reg_a = 0x55;
+
+    cpu.run();
+    assert_eq!(cpu.mem_read_u8((ptr + offset) as u16), data);
+  }
+
+  #[test]
+  fn test_0x8d_sta_absolute() {
+    let mut cpu = CPU::new();
+    cpu.load(vec![0x8d, 0x34, 0x12, 0x00]);
+    cpu.reset();
+
+    cpu.reg_a = 0x55;
+    cpu.run();
+  
+    assert_eq!(cpu.mem_read_u8(0x1234), 0x55);
+  }
+
+  #[test]
+  fn test_0x9d_sta_absolute_x() {
+    let mut cpu = CPU::new();
+    cpu.load(vec![0x9d, 0x34, 0x12, 0x00]);
+    cpu.reset();
+
+    cpu.reg_x = 0x01; // Offset
+    cpu.reg_a = 0x55; // Data to store
+    cpu.run();
+  
+    assert_eq!(cpu.mem_read_u8(0x1235), 0x55);
+  }
+
+  #[test]
+  fn test_0x99_sta_absolute_y() {
+    let mut cpu = CPU::new();
+    cpu.mem_write_u8(0x1235, 0x55);
+    cpu.load(vec![0x99, 0x34, 0x12, 0x00]);
+    cpu.reset();
+
+    cpu.reg_y = 0x01; // Offset
+    cpu.reg_a = 0x55; // Data to store
+    cpu.run();
+  
+    assert_eq!(cpu.mem_read_u8(0x1235), 0x55);
+  }
+
+  #[test]
+  fn test_0x81_sta_indirect_x() {
+    let mut cpu = CPU::new();
+
+    let indir_ptr: u8 = 0x10;
+    let ptr: u16 = 0x1234;
+    let offset: u8 = 0x10;
+
+    cpu.mem_write_u16((indir_ptr + offset) as u16, ptr);
+
+    cpu.load(vec![0x81, indir_ptr, 0x00]);
+    cpu.reset();
+
+    cpu.reg_x = offset;
+    cpu.reg_a = 0x55; // Data to store
+    cpu.run();
+
+    assert_eq!(cpu.mem_read_u8(ptr), 0x55);
+  }
+
+  #[test]
+  fn test_0x91_sta_indirect_y() {
+    let mut cpu = CPU::new();
+
+    let indir_ptr: u8 = 0x10;
+    let ptr: u16 = 0x1234;
+    let offset: u8 = 0x10;
+
+    cpu.mem_write_u16(indir_ptr as u16, ptr);
+
+    cpu.load(vec![0x91, indir_ptr, 0x00]);
+    cpu.reset();
+
+    cpu.reg_y = offset;
+    cpu.reg_a = 0x55; // Data to store
+    cpu.run();
+
+    assert_eq!(cpu.mem_read_u8(ptr + offset as u16), 0x55);
+  }
+}

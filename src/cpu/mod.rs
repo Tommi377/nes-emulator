@@ -1,7 +1,6 @@
-pub mod op;
 pub mod opcode;
 
-use crate::{cpu::{op::OP, opcode::AddressingMode}, utils::set_bit};
+use crate::{cpu::opcode::{optable::AddressingMode, OP}, utils::set_bit};
 
 pub struct CPU {
   pub pc: u16,
@@ -135,7 +134,7 @@ pub enum StatusFlag {
 }
 
 #[cfg(test)]
-mod test {
+mod memory_test {
   use super::*;
 
   // Memory tests
