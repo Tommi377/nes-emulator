@@ -1,6 +1,7 @@
-mod op;
+pub mod op;
+pub mod opcode;
 
-use crate::{cpu::op::{AddressingMode, OP}, utils::set_bit};
+use crate::{cpu::{op::OP, opcode::AddressingMode}, utils::set_bit};
 
 pub struct CPU {
   pub pc: u16,
