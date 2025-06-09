@@ -21,12 +21,14 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0xA1] = Some(OP { code: 0xA1, op: lda, mode: Indirect_X,      bytes: 2, cycles: 6 });
   table[0xB1] = Some(OP { code: 0xB1, op: lda, mode: Indirect_Y,      bytes: 2, cycles: 5 /* +1 if page crossed */ });
 
+  // LDX Instructions
   table[0xA2] = Some(OP { code: 0xA2, op: ldx, mode: Immediate,       bytes: 2, cycles: 2 });
   table[0xA6] = Some(OP { code: 0xA6, op: ldx, mode: ZeroPage,        bytes: 2, cycles: 3 });
   table[0xB6] = Some(OP { code: 0xB6, op: ldx, mode: ZeroPage_Y,      bytes: 2, cycles: 4 });
   table[0xAE] = Some(OP { code: 0xAE, op: ldx, mode: Absolute,        bytes: 3, cycles: 4 });
   table[0xBE] = Some(OP { code: 0xBE, op: ldx, mode: Absolute_Y,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
 
+  // LDY Instructions
   table[0xA0] = Some(OP { code: 0xA0, op: ldy, mode: Immediate,       bytes: 2, cycles: 2 });
   table[0xA4] = Some(OP { code: 0xA4, op: ldy, mode: ZeroPage,        bytes: 2, cycles: 3 });
   table[0xB4] = Some(OP { code: 0xB4, op: ldy, mode: ZeroPage_X,      bytes: 2, cycles: 4 });
@@ -41,6 +43,16 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0x99] = Some(OP { code: 0x99, op: sta, mode: Absolute_Y,      bytes: 3, cycles: 5 });
   table[0x81] = Some(OP { code: 0x81, op: sta, mode: Indirect_X,      bytes: 2, cycles: 6 });
   table[0x91] = Some(OP { code: 0x91, op: sta, mode: Indirect_Y,      bytes: 2, cycles: 6 });
+
+  // STX Instructions
+  table[0x86] = Some(OP { code: 0x86, op: stx, mode: ZeroPage,        bytes: 2, cycles: 3 });
+  table[0x96] = Some(OP { code: 0x96, op: stx, mode: ZeroPage_Y,      bytes: 2, cycles: 4 });
+  table[0x8E] = Some(OP { code: 0x8E, op: stx, mode: Absolute,        bytes: 3, cycles: 4 });
+
+  // STY Instructions
+  table[0x84] = Some(OP { code: 0x84, op: sty, mode: ZeroPage,        bytes: 2, cycles: 3 });
+  table[0x94] = Some(OP { code: 0x94, op: sty, mode: ZeroPage_X,      bytes: 2, cycles: 4 });
+  table[0x8C] = Some(OP { code: 0x8C, op: sty, mode: Absolute,        bytes: 3, cycles: 4 });
 
   // Non-Memory Addressing Instructions
   table[0xE8] = Some(OP { code: 0xE8, op: inx, mode: NoneAddressing,  bytes: 1, cycles: 2 });

@@ -429,3 +429,97 @@ mod sta_test {
     assert_eq!(cpu.mem_read_u8(ptr + offset as u16), 0x55);
   }
 }
+
+#[cfg(test)]
+mod stx_test {
+  use super::*;
+
+  #[test]
+  fn test_0x86_stx_zero_page() {
+    let mut cpu = CPU::new();
+    cpu.load(vec![0x86, 0x10, 0x00]);
+    cpu.reset();
+
+    cpu.reg_x = 0x55;
+    cpu.run();
+  
+    assert_eq!(cpu.mem_read_u8(0x10), 0x55);
+  }
+
+  #[test]
+  fn test_0x96_stx_zero_page_y() {
+    let mut cpu = CPU::new();
+
+    let ptr: u8 = 0x10;
+    let offset: u8 = 0x10;
+    let data: u8 = 0x55;
+
+    cpu.load(vec![0x96, ptr, 0x00]);
+    cpu.reset();
+
+    cpu.reg_y = offset;
+    cpu.reg_x = data;
+
+    cpu.run();
+    assert_eq!(cpu.mem_read_u8((ptr + offset) as u16), data);
+  }
+
+  #[test]
+  fn test_0x8e_stx_absolute() {
+    let mut cpu = CPU::new();
+    cpu.load(vec![0x8e, 0x34, 0x12, 0x00]);
+    cpu.reset();
+
+    cpu.reg_x = 0x55;
+    cpu.run();
+  
+    assert_eq!(cpu.mem_read_u8(0x1234), 0x55);
+  }
+}
+
+#[cfg(test)]
+mod sty_test {
+  use super::*;
+
+  #[test]
+  fn test_0x84_sty_zero_page() {
+    let mut cpu = CPU::new();
+    cpu.load(vec![0x84, 0x10, 0x00]);
+    cpu.reset();
+
+    cpu.reg_y = 0x55;
+    cpu.run();
+  
+    assert_eq!(cpu.mem_read_u8(0x10), 0x55);
+  }
+
+  #[test]
+  fn test_0x94_sty_zero_page_x() {
+    let mut cpu = CPU::new();
+
+    let ptr: u8 = 0x10;
+    let offset: u8 = 0x10;
+    let data: u8 = 0x55;
+
+    cpu.load(vec![0x94, ptr, 0x00]);
+    cpu.reset();
+
+    cpu.reg_x = offset;
+    cpu.reg_y = data;
+
+    cpu.run();
+    assert_eq!(cpu.mem_read_u8((ptr + offset) as u16), data);
+  }
+
+  #[test]
+  fn test_0x8c_sty_absolute() {
+    let mut cpu = CPU::new();
+    cpu.load(vec![0x8c, 0x34, 0x12, 0x00]);
+    cpu.reset();
+
+    cpu.reg_y = 0x55;
+    cpu.run();
+  
+    assert_eq!(cpu.mem_read_u8(0x1234), 0x55);
+  }
+}
