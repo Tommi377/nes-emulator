@@ -54,10 +54,6 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0x94] = Some(OP { code: 0x94, op: sty, mode: ZeroPage_X,      bytes: 2, cycles: 4 });
   table[0x8C] = Some(OP { code: 0x8C, op: sty, mode: Absolute,        bytes: 3, cycles: 4 });
 
-  // Non-Memory Addressing Instructions
-  table[0xE8] = Some(OP { code: 0xE8, op: inx, mode: NoneAddressing,  bytes: 1, cycles: 2 });
-  table[0x00] = Some(OP { code: 0x00, op: brk, mode: NoneAddressing,  bytes: 1, cycles: 7 });
-
   // Transfer Instructions
   table[0xAA] = Some(OP { code: 0xAA, op: tax, mode: NoneAddressing,  bytes: 1, cycles: 2 });
   table[0xA8] = Some(OP { code: 0xA8, op: tay, mode: NoneAddressing,  bytes: 1, cycles: 2 });
@@ -65,6 +61,21 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0x8A] = Some(OP { code: 0x8A, op: txa, mode: NoneAddressing,  bytes: 1, cycles: 2 });
   table[0x9A] = Some(OP { code: 0x9A, op: txs, mode: NoneAddressing,  bytes: 1, cycles: 2 });
   table[0x98] = Some(OP { code: 0x98, op: tya, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+
+  // Increment/Decrement Instructions
+  table[0xE6] = Some(OP { code: 0xE6, op: inc, mode: ZeroPage,        bytes: 2, cycles: 5 });
+  table[0xF6] = Some(OP { code: 0xF6, op: inc, mode: ZeroPage_X,      bytes: 2, cycles: 6 });
+  table[0xEE] = Some(OP { code: 0xEE, op: inc, mode: Absolute,        bytes: 3, cycles: 6 });
+  table[0xFE] = Some(OP { code: 0xFE, op: inc, mode: Absolute_X,      bytes: 3, cycles: 7 });
+  table[0xE8] = Some(OP { code: 0xE8, op: inx, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0xC8] = Some(OP { code: 0xC8, op: iny, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+
+  table[0xC6] = Some(OP { code: 0xC6, op: dec, mode: ZeroPage,        bytes: 2, cycles: 5 });
+  table[0xD6] = Some(OP { code: 0xD6, op: dec, mode: ZeroPage_X,      bytes: 2, cycles: 6 });
+  table[0xCE] = Some(OP { code: 0xCE, op: dec, mode: Absolute,        bytes: 3, cycles: 6 });
+  table[0xDE] = Some(OP { code: 0xDE, op: dec, mode: Absolute_X,      bytes: 3, cycles: 7 });
+  table[0xCA] = Some(OP { code: 0xCA, op: dex, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0x88] = Some(OP { code: 0x88, op: dey, mode: NoneAddressing,  bytes: 1, cycles: 2 });
   
   // Status Flag Changes
   table[0x18] = Some(OP { code: 0x18, op: clc, mode: NoneAddressing,  bytes: 1, cycles: 2 });
@@ -74,6 +85,9 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0x38] = Some(OP { code: 0x38, op: sec, mode: NoneAddressing,  bytes: 1, cycles: 2 });
   table[0xF8] = Some(OP { code: 0xF8, op: sed, mode: NoneAddressing,  bytes: 1, cycles: 2 });
   table[0x78] = Some(OP { code: 0x78, op: sei, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+
+  // System Instructions
+  table[0x00] = Some(OP { code: 0x00, op: brk, mode: NoneAddressing,  bytes: 1, cycles: 7 });
 
   table
 };
