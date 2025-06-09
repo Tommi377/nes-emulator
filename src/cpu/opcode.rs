@@ -3,7 +3,10 @@ use crate::cpu::op::OP;
 #[allow(non_camel_case_types)]
 #[allow(dead_code)]
 
-pub static OPCODE_TABLE: [Option<OP>; 256] = {
+// Instruction Set for the Obelisk 6502 CPU
+// https://www.nesdev.org/obelisk-6502-guide/reference.html
+
+pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   use AddressingMode::*;
 
   let mut table: [Option<OP>; 256] = [None; 256];
