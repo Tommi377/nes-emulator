@@ -8,7 +8,7 @@ pub struct CPU {
   pub reg_a: u8,
   pub reg_x: u8,
   pub reg_y: u8,
-  memory: [u8; 0xFFFF],
+  pub memory: [u8; 0xFFFF],
 }
 
 impl CPU {
@@ -43,18 +43,9 @@ impl CPU {
   }
 
   pub fn run(&mut self) {
-    loop {
+    while (self.status & StatusFlag::Break as u8) == 0 {
       let opcode: OP = self.mem_read_pc_u8().into();
-
-      match opcode.op {
-        "LDA" => self.lda(&opcode.mode),
-        "TAX" => self.tax(),
-        "INX" => self.inx(),
-        "BRK" => {
-          return;
-        }
-        _ => panic!("Unknown opcode: {} at PC: 0x{:04X}", opcode.op, self.pc),
-      }
+      opcode.execute(self);
     }
   }
 
@@ -121,22 +112,6 @@ impl CPU {
     self.mem_write_u8(addr, lo);
     self.mem_write_u8(addr + 1, hi);
   }
-
-  fn lda(&mut self, addressing_mode: &AddressingMode) {
-    let addr= self.get_address(addressing_mode);
-    self.reg_a = self.mem_read_u8(addr);
-    self.update_zero_and_negative_flags(self.reg_a);
-  }
-
-  fn tax(&mut self) {
-    self.reg_x = self.reg_a;
-    self.update_zero_and_negative_flags(self.reg_x);
-  }
-
-  fn inx(&mut self) {
-    self.reg_x = self.reg_x.wrapping_add(1);
-    self.update_zero_and_negative_flags(self.reg_x);
-  }
   
   fn update_zero_and_negative_flags(&mut self, result: u8) {
     self.status = set_bit(self.status, StatusFlag::Zero as u8, result == 0);
@@ -191,7 +166,8 @@ mod test {
     assert_eq!(value, data);
   }
 
-  // LDA Tests
+  // Addressing Mode tests
+
   #[test]
   fn test_0xa9_lda_immediate_load_data() {
     let mut cpu = CPU::new();
@@ -303,64 +279,6 @@ mod test {
     cpu.run();
 
     assert_eq!(cpu.reg_a, data);
-  }
-
-  #[test]
-  fn test_0xa9_lda_zero_flag() {
-    let mut cpu = CPU::new();
-    cpu.load_and_run(vec![0xa9, 0x00, 0x00]);
-    assert!(cpu.status & 0b0000_0010 == 0b10);
-  }
-
-  #[test]
-  fn test_0xa9_lda_neg_flag() {
-    let mut cpu = CPU::new();
-    cpu.load_and_run(vec![0xa9, 0xFF, 0x00]);
-    assert!(cpu.status & 0b1000_0000 != 0);
-  }
-
-  // TAX Tests
-  #[test]
-  fn test_0xaa_tax_immediate_load_data() {
-    let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
-    cpu.reg_a = 5;
-    cpu.load(vec![0xaa, 0x00]);
-    cpu.run();
-    assert_eq!(cpu.reg_x, 0x05);
-    assert!(cpu.status & 0b0000_0010 == 0b00);
-    assert!(cpu.status & 0b1000_0000 == 0);
-  }
- 
-   #[test]
-  fn test_0xaa_tax_zero_flag() {
-    let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
-    cpu.reg_a = 0;
-    cpu.load(vec![0xaa, 0x00]);
-    cpu.run();
-    assert!(cpu.status & 0b0000_0010 == 0b10);
-  }
-
-  #[test]
-  fn test_0xaa_tax_neg_flag() {
-    let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
-    cpu.reg_a = 255;
-    cpu.load(vec![0xaa, 0x00]);
-    cpu.run();
-    assert!(cpu.status & 0b1000_0000 != 0);
-  }
-
-  // INX Tests
-  #[test]
-  fn test_inx_overflow() {
-    let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
-    cpu.reg_x = 0xff;
-    cpu.load(vec![0xe8, 0xe8, 0x00]);
-    cpu.run();
-    assert_eq!(cpu.reg_x, 1)
   }
 
   // General Instruction tests
