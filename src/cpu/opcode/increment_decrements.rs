@@ -1,4 +1,4 @@
-use crate::cpu::{opcode::{optable::AddressingMode}, CPU};
+use crate::cpu::{opcode::{opcode_table::AddressingMode}, CPU};
 
 pub(crate) fn inx(cpu: &mut CPU, _mode: AddressingMode) {
   cpu.reg_x = cpu.reg_x.wrapping_add(1);

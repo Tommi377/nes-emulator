@@ -1,6 +1,6 @@
-use crate::{cpu::{opcode::optable::{AddressingMode, OPCODE_TABLE}, CPU}};
+use crate::{cpu::{opcode::opcode_table::{AddressingMode, OPCODE_TABLE}, CPU}};
 
-pub mod optable;
+pub mod opcode_table;
 pub mod register_transfers;
 pub mod increment_decrements;
 pub mod system_functions;
