@@ -16,7 +16,6 @@ pub static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0xB9] = Some(OP { code: 0xB9, op: "LDA", mode: Absolute_Y,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
   table[0xA1] = Some(OP { code: 0xA1, op: "LDA", mode: Indirect_X,      bytes: 2, cycles: 6 });
   table[0xB1] = Some(OP { code: 0xB1, op: "LDA", mode: Indirect_Y,      bytes: 2, cycles: 5 /* +1 if page crossed */ });
-  table[0xAA] = Some(OP { code: 0xAA, op: "TAX", mode: NoneAddressing,  bytes: 1, cycles: 2 });
 
   // STA Instructions
   table[0x85] = Some(OP { code: 0x85, op: "STA", mode: ZeroPage,        bytes: 2, cycles: 3 });
@@ -30,6 +29,14 @@ pub static OPCODE_TABLE: [Option<OP>; 256] = {
   // Non-Memory Addressing Instructions
   table[0xE8] = Some(OP { code: 0xE8, op: "INX", mode: NoneAddressing,  bytes: 1, cycles: 2 });
   table[0x00] = Some(OP { code: 0x00, op: "BRK", mode: NoneAddressing,  bytes: 1, cycles: 7 });
+
+  // Transfer Instructions
+  table[0xAA] = Some(OP { code: 0xAA, op: "TAX", mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0xA8] = Some(OP { code: 0xA8, op: "TAY", mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0xBA] = Some(OP { code: 0xBA, op: "TSX", mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0x8A] = Some(OP { code: 0x8A, op: "TXA", mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0x9A] = Some(OP { code: 0x9A, op: "TXS", mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0x98] = Some(OP { code: 0x98, op: "TYA", mode: NoneAddressing,  bytes: 1, cycles: 2 });
   
   table
 };

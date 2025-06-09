@@ -9,6 +9,7 @@ pub struct CPU {
   pub reg_a: u8,
   pub reg_x: u8,
   pub reg_y: u8,
+  pub reg_sp: u8,
   pub memory: [u8; 0xFFFF],
 }
 
@@ -20,6 +21,7 @@ impl CPU {
       reg_a: 0,
       reg_x: 0,
       reg_y: 0,
+      reg_sp: 0xFF,
       memory: [0; 0xFFFF],
     }
   }
@@ -105,7 +107,6 @@ impl CPU {
     self.pc += 2;
     value
   }
-
 
   fn mem_write_u16(&mut self, addr: u16, data: u16) {
     let lo = (data & 0b1111_1111) as u8;

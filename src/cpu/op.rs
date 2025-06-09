@@ -15,9 +15,15 @@ impl OP {
     match self.op {
       "LDA" => Self::lda(cpu, &self.mode),
       "STA" => Self::sta(cpu, &self.mode),
-      "TAX" => Self::tax(cpu),
       "INX" => Self::inx(cpu),
       "BRK" => Self::brk(cpu),
+      "TAX" => Self::tax(cpu),
+      "TAY" => Self::tay(cpu),
+      "TSX" => Self::tsx(cpu),
+      "TXA" => Self::txa(cpu),
+      "TXS" => Self::txs(cpu),
+      "TYA" => Self::tya(cpu),
+
       _ => panic!("Unknown opcode: {} at PC: 0x{:04X}", self.op, cpu.pc),
     }
   }
@@ -37,6 +43,31 @@ impl OP {
   fn tax(cpu: &mut CPU) {
     cpu.reg_x = cpu.reg_a;
     cpu.update_zero_and_negative_flags(cpu.reg_x);
+  }
+
+  fn tay(cpu: &mut CPU) {
+    cpu.reg_y = cpu.reg_a;
+    cpu.update_zero_and_negative_flags(cpu.reg_y);
+  }
+
+  fn tsx(cpu: &mut CPU) {
+    cpu.reg_x = cpu.reg_sp;
+    cpu.update_zero_and_negative_flags(cpu.reg_x);
+  }
+
+  fn txa(cpu: &mut CPU) {
+    cpu.reg_a = cpu.reg_x;
+    cpu.update_zero_and_negative_flags(cpu.reg_a);
+  }
+
+  fn txs(cpu: &mut CPU) {
+    cpu.reg_sp = cpu.reg_x;
+    cpu.update_zero_and_negative_flags(cpu.reg_sp);
+  }
+
+  fn tya(cpu: &mut CPU) {
+    cpu.reg_a = cpu.reg_y;
+    cpu.update_zero_and_negative_flags(cpu.reg_a);
   }
 
   fn inx(cpu: &mut CPU) {
@@ -304,15 +335,17 @@ mod test {
     }
   }
 
-  mod tax_tests {
+  mod transfer_tests {
     use super::*;
     #[test]
-    fn test_0xaa_tax_immediate_load_data() {
+    fn test_0xaa_tax_transfer() {
       let mut cpu = CPU::new();
-      cpu.pc = 0x8000;
-      cpu.reg_a = 5;
       cpu.load(vec![0xaa, 0x00]);
+      cpu.reset();
+    
+      cpu.reg_a = 5;
       cpu.run();
+
       assert_eq!(cpu.reg_x, 0x05);
       assert!(cpu.status & 0b0000_0010 == 0b00);
       assert!(cpu.status & 0b1000_0000 == 0);
@@ -321,9 +354,10 @@ mod test {
     #[test]
     fn test_0xaa_tax_zero_flag() {
       let mut cpu = CPU::new();
-      cpu.pc = 0x8000;
-      cpu.reg_a = 0;
       cpu.load(vec![0xaa, 0x00]);
+      cpu.reset();
+
+      cpu.reg_a = 0;
       cpu.run();
       assert!(cpu.status & 0b0000_0010 == 0b10);
     }
@@ -331,11 +365,83 @@ mod test {
     #[test]
     fn test_0xaa_tax_neg_flag() {
       let mut cpu = CPU::new();
-      cpu.pc = 0x8000;
-      cpu.reg_a = 255;
+    
       cpu.load(vec![0xaa, 0x00]);
+      cpu.reset();
+
+      cpu.reg_a = 255;
       cpu.run();
       assert!(cpu.status & 0b1000_0000 != 0);
+    }
+
+    #[test]
+    fn test_0xa8_tay_transfer() {
+      let mut cpu = CPU::new();
+      cpu.load(vec![0xa8, 0x00]);
+      cpu.reset();
+
+      cpu.reg_a = 5;
+      cpu.run();
+    
+      assert_eq!(cpu.reg_y, 0x05);
+      assert!(cpu.status & 0b0000_0010 == 0b00);
+      assert!(cpu.status & 0b1000_0000 == 0);
+    }
+    
+    #[test]
+    fn test_0xba_tsx_transfer() {
+      let mut cpu = CPU::new();
+      cpu.load(vec![0xba, 0x00]);
+      cpu.reset();
+
+      cpu.reg_sp = 5;
+      cpu.run();
+    
+      assert_eq!(cpu.reg_x, 0x05);
+      assert!(cpu.status & 0b0000_0010 == 0b00);
+      assert!(cpu.status & 0b1000_0000 == 0);
+    }
+
+    #[test]
+    fn test_0x8a_txa_transfer() {
+      let mut cpu = CPU::new();
+      cpu.load(vec![0x8a, 0x00]);
+      cpu.reset();
+
+      cpu.reg_x = 5;
+      cpu.run();
+    
+      assert_eq!(cpu.reg_a, 0x05);
+      assert!(cpu.status & 0b0000_0010 == 0b00);
+      assert!(cpu.status & 0b1000_0000 == 0);
+    }
+
+    #[test]
+    fn test_0x9a_txs_transfer() {
+      let mut cpu = CPU::new();
+      cpu.load(vec![0x9a, 0x00]);
+      cpu.reset();
+
+      cpu.reg_x = 5;
+      cpu.run();
+    
+      assert_eq!(cpu.reg_sp, 0x05);
+      assert!(cpu.status & 0b0000_0010 == 0b00);
+      assert!(cpu.status & 0b1000_0000 == 0);
+    }
+
+    #[test]
+    fn test_0x98_tya_transfer() {
+      let mut cpu = CPU::new();
+      cpu.load(vec![0x98, 0x00]);
+      cpu.reset();
+
+      cpu.reg_y = 5;
+      cpu.run();
+    
+      assert_eq!(cpu.reg_a, 0x05);
+      assert!(cpu.status & 0b0000_0010 == 0b00);
+      assert!(cpu.status & 0b1000_0000 == 0);
     }
   }
 
