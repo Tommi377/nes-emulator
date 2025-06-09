@@ -1,4 +1,4 @@
-use crate::cpu::opcode::{increment_decrements::*, load_store::*, register_transfers::*, status_flag_changes::*, system_functions::*, OP};
+use crate::cpu::opcode::{arithmetic::*, increment_decrements::*, load_store::*, register_transfers::*, status_flag_changes::*, system_functions::*, OP};
 
 
 #[allow(non_camel_case_types)]
@@ -61,6 +61,16 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0x8A] = Some(OP { code: 0x8A, op: txa, mode: NoneAddressing,  bytes: 1, cycles: 2 });
   table[0x9A] = Some(OP { code: 0x9A, op: txs, mode: NoneAddressing,  bytes: 1, cycles: 2 });
   table[0x98] = Some(OP { code: 0x98, op: tya, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+
+  // Arithmetic Instructions
+  table[0x69] = Some(OP { code: 0x69, op: adc, mode: Immediate,       bytes: 2, cycles: 2 });
+  table[0x65] = Some(OP { code: 0x65, op: adc, mode: ZeroPage,        bytes: 2, cycles: 3 });
+  table[0x75] = Some(OP { code: 0x75, op: adc, mode: ZeroPage_X,      bytes: 2, cycles: 4 });
+  table[0x6D] = Some(OP { code: 0x6D, op: adc, mode: Absolute,        bytes: 3, cycles: 4 });
+  table[0x7D] = Some(OP { code: 0x7D, op: adc, mode: Absolute_X,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
+  table[0x79] = Some(OP { code: 0x79, op: adc, mode: Absolute_Y,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
+  table[0x61] = Some(OP { code: 0x61, op: adc, mode: Indirect_X,      bytes: 2, cycles: 6 });
+  table[0x71] = Some(OP { code: 0x71, op: adc, mode: Indirect_Y,      bytes: 2, cycles: 5 /* +1 if page crossed */ });
 
   // Increment/Decrement Instructions
   table[0xE6] = Some(OP { code: 0xE6, op: inc, mode: ZeroPage,        bytes: 2, cycles: 5 });

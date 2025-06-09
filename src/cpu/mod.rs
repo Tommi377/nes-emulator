@@ -81,6 +81,10 @@ impl CPU {
     }
   }
 
+  fn get_flag(&self, flag: StatusFlag) -> bool {
+    (self.status & (flag as u8)) != 0
+  }
+
   fn mem_read_u8(&self, addr: u16) -> u8 {
     self.memory[addr as usize]
   }
