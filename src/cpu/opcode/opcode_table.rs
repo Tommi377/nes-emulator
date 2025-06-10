@@ -1,5 +1,5 @@
 use crate::cpu::opcode::{
-  OP, arithmetic::*, increment_decrements::*, load_store::*, register_transfers::*,
+  OP, arithmetic::*, increment_decrements::*, load_store::*, logical::*, register_transfers::*,
   stack_operations::*, status_flag_changes::*, system_functions::*,
 };
 
@@ -63,6 +63,37 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0x8A] = Some(OP { code: 0x8A, op: txa, mode: NoneAddressing,  bytes: 1, cycles: 2 });
   table[0x9A] = Some(OP { code: 0x9A, op: txs, mode: NoneAddressing,  bytes: 1, cycles: 2 });
   table[0x98] = Some(OP { code: 0x98, op: tya, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+
+  // Logical Instructions
+  table[0x29] = Some(OP { code: 0x29, op: and, mode: Immediate,       bytes: 2, cycles: 2 });
+  table[0x25] = Some(OP { code: 0x25, op: and, mode: ZeroPage,        bytes: 2, cycles: 3 });
+  table[0x35] = Some(OP { code: 0x35, op: and, mode: ZeroPage_X,      bytes: 2, cycles: 4 });
+  table[0x2D] = Some(OP { code: 0x2D, op: and, mode: Absolute,        bytes: 3, cycles: 4 });
+  table[0x3D] = Some(OP { code: 0x3D, op: and, mode: Absolute_X,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
+  table[0x39] = Some(OP { code: 0x39, op: and, mode: Absolute_Y,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
+  table[0x21] = Some(OP { code: 0x21, op: and, mode: Indirect_X,      bytes: 2, cycles: 6 });
+  table[0x31] = Some(OP { code: 0x31, op: and, mode: Indirect_Y,      bytes: 2, cycles: 5 /* +1 if page crossed */ });
+
+  table[0x49] = Some(OP { code: 0x49, op: eor, mode: Immediate,       bytes: 2, cycles: 2 });
+  table[0x45] = Some(OP { code: 0x45, op: eor, mode: ZeroPage,        bytes: 2, cycles: 3 });
+  table[0x55] = Some(OP { code: 0x55, op: eor, mode: ZeroPage_X,      bytes: 2, cycles: 4 });
+  table[0x4D] = Some(OP { code: 0x4D, op: eor, mode: Absolute,        bytes: 3, cycles: 4 });
+  table[0x5D] = Some(OP { code: 0x5D, op: eor, mode: Absolute_X,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
+  table[0x59] = Some(OP { code: 0x59, op: eor, mode: Absolute_Y,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
+  table[0x41] = Some(OP { code: 0x41, op: eor, mode: Indirect_X,      bytes: 2, cycles: 6 });
+  table[0x51] = Some(OP { code: 0x51, op: eor, mode: Indirect_Y,      bytes: 2, cycles: 5 /* +1 if page crossed */ });
+
+  table[0x09] = Some(OP { code: 0x09, op: ora, mode: Immediate,       bytes: 2, cycles: 2 });
+  table[0x05] = Some(OP { code: 0x05, op: ora, mode: ZeroPage,        bytes: 2, cycles: 3 });
+  table[0x15] = Some(OP { code: 0x15, op: ora, mode: ZeroPage_X,      bytes: 2, cycles: 4 });
+  table[0x0D] = Some(OP { code: 0x0D, op: ora, mode: Absolute,        bytes: 3, cycles: 4 });
+  table[0x1D] = Some(OP { code: 0x1D, op: ora, mode: Absolute_X,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
+  table[0x19] = Some(OP { code: 0x19, op: ora, mode: Absolute_Y,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
+  table[0x01] = Some(OP { code: 0x01, op: ora, mode: Indirect_X,      bytes: 2, cycles: 6 });
+  table[0x11] = Some(OP { code: 0x11, op: ora, mode: Indirect_Y,      bytes: 2, cycles: 5 /* +1 if page crossed */ });
+
+  table[0x24] = Some(OP { code: 0x24, op: bit, mode: ZeroPage,        bytes: 2, cycles: 3 });
+  table[0x2C] = Some(OP { code: 0x2C, op: bit, mode: Absolute,        bytes: 3, cycles: 4 });
 
   // Arithmetic Instructions
   table[0x69] = Some(OP { code: 0x69, op: adc, mode: Immediate,       bytes: 2, cycles: 2 });

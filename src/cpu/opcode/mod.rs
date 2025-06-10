@@ -6,6 +6,7 @@ use crate::cpu::{
 pub mod arithmetic;
 pub mod increment_decrements;
 pub mod load_store;
+pub mod logical;
 pub mod opcode_table;
 pub mod register_transfers;
 pub mod stack_operations;
