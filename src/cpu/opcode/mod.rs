@@ -8,6 +8,7 @@ pub mod increment_decrements;
 pub mod load_store;
 pub mod opcode_table;
 pub mod register_transfers;
+pub mod stack_operations;
 pub mod status_flag_changes;
 pub mod system_functions;
 

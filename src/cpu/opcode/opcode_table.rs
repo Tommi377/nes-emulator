@@ -1,6 +1,6 @@
 use crate::cpu::opcode::{
   OP, arithmetic::*, increment_decrements::*, load_store::*, register_transfers::*,
-  status_flag_changes::*, system_functions::*,
+  stack_operations::*, status_flag_changes::*, system_functions::*,
 };
 
 // Instruction Set for the Obelisk 6502 CPU
@@ -97,6 +97,12 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0x38] = Some(OP { code: 0x38, op: sec, mode: NoneAddressing,  bytes: 1, cycles: 2 });
   table[0xF8] = Some(OP { code: 0xF8, op: sed, mode: NoneAddressing,  bytes: 1, cycles: 2 });
   table[0x78] = Some(OP { code: 0x78, op: sei, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+
+  // Stack Operations
+  table[0x48] = Some(OP { code: 0x48, op: pha, mode: NoneAddressing,  bytes: 1, cycles: 3 });
+  table[0x08] = Some(OP { code: 0x08, op: php, mode: NoneAddressing,  bytes: 1, cycles: 3 });
+  table[0x68] = Some(OP { code: 0x68, op: pla, mode: NoneAddressing,  bytes: 1, cycles: 4 });
+  table[0x28] = Some(OP { code: 0x28, op: plp, mode: NoneAddressing,  bytes: 1, cycles: 4 });
 
   // System Instructions
   table[0x00] = Some(OP { code: 0x00, op: brk, mode: NoneAddressing,  bytes: 1, cycles: 7 });

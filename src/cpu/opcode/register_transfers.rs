@@ -11,7 +11,7 @@ pub(crate) fn tay(cpu: &mut CPU, _mode: AddressingMode) {
 }
 
 pub(crate) fn tsx(cpu: &mut CPU, _mode: AddressingMode) {
-  cpu.reg_x = cpu.reg_sp;
+  cpu.reg_x = cpu.stack;
   cpu.update_zero_and_negative_flags(cpu.reg_x);
 }
 
@@ -21,8 +21,8 @@ pub(crate) fn txa(cpu: &mut CPU, _mode: AddressingMode) {
 }
 
 pub(crate) fn txs(cpu: &mut CPU, _mode: AddressingMode) {
-  cpu.reg_sp = cpu.reg_x;
-  cpu.update_zero_and_negative_flags(cpu.reg_sp);
+  cpu.stack = cpu.reg_x;
+  cpu.update_zero_and_negative_flags(cpu.stack);
 }
 
 pub(crate) fn tya(cpu: &mut CPU, _mode: AddressingMode) {
@@ -90,7 +90,7 @@ mod transfer_test {
     cpu.load(vec![0xba, 0x00]);
     cpu.reset();
 
-    cpu.reg_sp = 5;
+    cpu.stack = 5;
     cpu.run();
 
     assert_eq!(cpu.reg_x, 0x05);
@@ -121,7 +121,7 @@ mod transfer_test {
     cpu.reg_x = 5;
     cpu.run();
 
-    assert_eq!(cpu.reg_sp, 0x05);
+    assert_eq!(cpu.stack, 0x05);
     assert!(cpu.status & 0b0000_0010 == 0b00);
     assert!(cpu.status & 0b1000_0000 == 0);
   }

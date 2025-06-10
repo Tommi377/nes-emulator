@@ -8,10 +8,10 @@ use crate::{
 pub struct CPU {
   pub pc: u16,
   pub status: u8,
+  pub stack: u8,
   pub reg_a: u8,
   pub reg_x: u8,
   pub reg_y: u8,
-  pub reg_sp: u8,
   pub memory: [u8; 0xFFFF],
 }
 
@@ -23,7 +23,7 @@ impl CPU {
       reg_a: 0,
       reg_x: 0,
       reg_y: 0,
-      reg_sp: 0xFF,
+      stack: 0xFF,
       memory: [0; 0xFFFF],
     }
   }
@@ -82,6 +82,10 @@ impl CPU {
       }
       AddressingMode::NoneAddressing => panic!("mode {:?} is not supported", addressing_mode),
     }
+  }
+
+  fn get_stack_address(&self) -> u16 {
+    0x0100 | self.stack as u16
   }
 
   fn get_flag(&self, flag: StatusFlag) -> bool {
