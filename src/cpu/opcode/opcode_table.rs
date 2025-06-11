@@ -1,6 +1,6 @@
 use crate::cpu::opcode::{
   OP, arithmetic::*, increment_decrements::*, load_store::*, logical::*, register_transfers::*,
-  stack_operations::*, status_flag_changes::*, system_functions::*,
+  shifts::*, stack_operations::*, status_flag_changes::*, system_functions::*,
 };
 
 // Instruction Set for the Obelisk 6502 CPU
@@ -119,6 +119,31 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0xDE] = Some(OP { code: 0xDE, op: dec, mode: Absolute_X,      bytes: 3, cycles: 7 });
   table[0xCA] = Some(OP { code: 0xCA, op: dex, mode: NoneAddressing,  bytes: 1, cycles: 2 });
   table[0x88] = Some(OP { code: 0x88, op: dey, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+
+  // Shift Instructions
+  table[0x0A] = Some(OP { code: 0x0A, op: asl, mode: Accumulator,     bytes: 1, cycles: 2 });
+  table[0x06] = Some(OP { code: 0x06, op: asl, mode: ZeroPage,        bytes: 2, cycles: 5 });
+  table[0x16] = Some(OP { code: 0x16, op: asl, mode: ZeroPage_X,      bytes: 2, cycles: 6 });
+  table[0x0E] = Some(OP { code: 0x0E, op: asl, mode: Absolute,        bytes: 3, cycles: 6 });
+  table[0x1E] = Some(OP { code: 0x1E, op: asl, mode: Absolute_X,      bytes: 3, cycles: 7 });
+
+  table[0x4A] = Some(OP { code: 0x4A, op: lsr, mode: Accumulator,     bytes: 1, cycles: 2 });
+  table[0x46] = Some(OP { code: 0x46, op: lsr, mode: ZeroPage,        bytes: 2, cycles: 5 });
+  table[0x56] = Some(OP { code: 0x56, op: lsr, mode: ZeroPage_X,      bytes: 2, cycles: 6 });
+  table[0x4E] = Some(OP { code: 0x4E, op: lsr, mode: Absolute,        bytes: 3, cycles: 6 });
+  table[0x5E] = Some(OP { code: 0x5E, op: lsr, mode: Absolute_X,      bytes: 3, cycles: 7 });
+
+  table[0x2A] = Some(OP { code: 0x2A, op: rol, mode: Accumulator,     bytes: 1, cycles: 2 });
+  table[0x26] = Some(OP { code: 0x26, op: rol, mode: ZeroPage,        bytes: 2, cycles: 5 });
+  table[0x36] = Some(OP { code: 0x36, op: rol, mode: ZeroPage_X,      bytes: 2, cycles: 6 });
+  table[0x2E] = Some(OP { code: 0x2E, op: rol, mode: Absolute,        bytes: 3, cycles: 6 });
+  table[0x3E] = Some(OP { code: 0x3E, op: rol, mode: Absolute_X,      bytes: 3, cycles: 7 });
+
+  table[0x6A] = Some(OP { code: 0x6A, op: ror, mode: Accumulator,     bytes: 1, cycles: 2 });
+  table[0x66] = Some(OP { code: 0x66, op: ror, mode: ZeroPage,        bytes: 2, cycles: 5 });
+  table[0x76] = Some(OP { code: 0x76, op: ror, mode: ZeroPage_X,      bytes: 2, cycles: 6 });
+  table[0x6E] = Some(OP { code: 0x6E, op: ror, mode: Absolute,        bytes: 3, cycles: 6 });
+  table[0x7E] = Some(OP { code: 0x7E, op: ror, mode: Absolute_X,      bytes: 3, cycles: 7 });
   
   // Status Flag Changes
   table[0x18] = Some(OP { code: 0x18, op: clc, mode: NoneAddressing,  bytes: 1, cycles: 2 });
@@ -141,7 +166,7 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table
 };
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 #[allow(non_camel_case_types)]
 #[allow(dead_code)]
 pub enum AddressingMode {
@@ -154,5 +179,6 @@ pub enum AddressingMode {
   Absolute_Y,
   Indirect_X,
   Indirect_Y,
+  Accumulator,
   NoneAddressing,
 }

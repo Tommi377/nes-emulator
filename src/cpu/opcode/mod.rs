@@ -9,6 +9,7 @@ pub mod load_store;
 pub mod logical;
 pub mod opcode_table;
 pub mod register_transfers;
+pub mod shifts;
 pub mod stack_operations;
 pub mod status_flag_changes;
 pub mod system_functions;

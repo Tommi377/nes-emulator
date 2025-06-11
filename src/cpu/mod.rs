@@ -80,6 +80,7 @@ impl CPU {
         let deref = deref_base.wrapping_add(self.reg_y as u16);
         deref
       }
+      AddressingMode::Accumulator => panic!("mode {:?} is not an address", addressing_mode),
       AddressingMode::NoneAddressing => panic!("mode {:?} is not supported", addressing_mode),
     }
   }
@@ -90,6 +91,13 @@ impl CPU {
 
   fn get_flag(&self, flag: StatusFlag) -> bool {
     (self.status & (flag as u8)) != 0
+  }
+
+  fn set_flag(&mut self, flag: StatusFlag, value: bool) {
+    self.status &= !(flag as u8);
+    if value {
+      self.status |= flag as u8;
+    }
   }
 
   fn mem_read_u8(&self, addr: u16) -> u8 {
@@ -137,6 +145,7 @@ impl CPU {
 
 #[allow(dead_code)]
 #[repr(u8)]
+#[derive(Debug, Clone, Copy)]
 pub enum StatusFlag {
   Carry = 0b0000_0001,
   Zero = 0b0000_0010,
