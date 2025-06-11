@@ -6,7 +6,8 @@ pub(crate) fn pha(cpu: &mut CPU, _mode: AddressingMode) {
 }
 
 pub(crate) fn php(cpu: &mut CPU, _mode: AddressingMode) {
-  cpu.mem_write_u8(cpu.get_stack_address(), cpu.status);
+  let value = cpu.status | 0b0011_0000; // The B flag and extra bit are both pushed as 1
+  cpu.mem_write_u8(cpu.get_stack_address(), value);
   cpu.stack = cpu.stack.wrapping_sub(1);
 }
 
@@ -18,7 +19,9 @@ pub(crate) fn pla(cpu: &mut CPU, _mode: AddressingMode) {
 
 pub(crate) fn plp(cpu: &mut CPU, _mode: AddressingMode) {
   cpu.stack = cpu.stack.wrapping_add(1);
-  cpu.status = cpu.mem_read_u8(cpu.get_stack_address());
+  let value = cpu.mem_read_u8(cpu.get_stack_address());
+  cpu.status &= 0b0011_0000; // Clear all flags except B and extra bit
+  cpu.status |= value & 0b1100_1111; // The B flag and extra bit are ignored.
 }
 
 #[cfg(test)]
@@ -58,7 +61,7 @@ mod stack_operations_test {
 
     php(&mut cpu, AddressingMode::NoneAddressing);
 
-    assert_eq!(cpu.mem_read_u8(0x01FF), 0b1010_0101);
+    assert_eq!(cpu.mem_read_u8(0x01FF), 0b1011_0101);
     assert_eq!(cpu.stack, 0xFE);
   }
 
@@ -70,7 +73,7 @@ mod stack_operations_test {
 
     php(&mut cpu, AddressingMode::NoneAddressing);
 
-    assert_eq!(cpu.mem_read_u8(0x0100), 0b1100_0011);
+    assert_eq!(cpu.mem_read_u8(0x0100), 0b1111_0011);
     assert_eq!(cpu.stack, 0xFF);
   }
 
@@ -109,7 +112,7 @@ mod stack_operations_test {
     plp(&mut cpu, AddressingMode::NoneAddressing);
 
     // Check that status was loaded from stack
-    assert_eq!(cpu.status, 0b0110_1001);
+    assert_eq!(cpu.status, 0b0100_1001);
     // Check that stack pointer was incremented
     assert_eq!(cpu.stack, 0xFF);
   }
@@ -123,7 +126,7 @@ mod stack_operations_test {
     plp(&mut cpu, AddressingMode::NoneAddressing);
 
     // Check that status was loaded from stack
-    assert_eq!(cpu.status, 0b1111_0000);
+    assert_eq!(cpu.status, 0b1100_0000);
     // Check that stack pointer wrapped to 0x00
     assert_eq!(cpu.stack, 0x00);
   }
@@ -151,7 +154,7 @@ mod stack_operations_test {
   #[test]
   fn test_push_pull_status_round_trip() {
     let mut cpu = CPU::new();
-    let original_status = 0b1001_0110;
+    let original_status = 0b1000_0110;
     cpu.status = original_status;
     cpu.stack = 0xFF;
 
