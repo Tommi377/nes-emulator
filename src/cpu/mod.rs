@@ -81,7 +81,7 @@ impl CPU {
         deref
       }
       AddressingMode::Accumulator => panic!("mode {:?} is not an address", addressing_mode),
-      AddressingMode::NoneAddressing => panic!("mode {:?} is not supported", addressing_mode),
+      _ => panic!("mode {:?} is not supported", addressing_mode),
     }
   }
 
