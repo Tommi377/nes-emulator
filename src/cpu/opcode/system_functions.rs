@@ -7,6 +7,12 @@ pub(crate) fn brk(cpu: &mut CPU, _mode: AddressingMode) {
   cpu.status = set_bit(cpu.status, StatusFlag::Break as u8, true);
 }
 
+pub(crate) fn nop(cpu: &mut CPU, _mode: AddressingMode) {}
+
+pub(crate) fn rti(cpu: &mut CPU, _mode: AddressingMode) {
+  todo!()
+}
+
 #[cfg(test)]
 mod brk_test {
   use super::*;

@@ -209,6 +209,8 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
 
   // System Instructions
   table[0x00] = Some(OP { code: 0x00, op: brk, mode: NoneAddressing,  bytes: 1, cycles: 7 });
+  table[0xEA] = Some(OP { code: 0xEA, op: nop, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0x40] = Some(OP { code: 0x40, op: rti, mode: NoneAddressing,  bytes: 1, cycles: 6 });
 
   table
 };
