@@ -111,7 +111,6 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0xE1] = Some(OP { code: 0xE1, op: sbc, mode: Indirect_X,      bytes: 2, cycles: 6 });
   table[0xF1] = Some(OP { code: 0xF1, op: sbc, mode: Indirect_Y,      bytes: 2, cycles: 5 /* +1 if page crossed */ });
 
-  /* TODO
   // Compare Instructions
   table[0xC9] = Some(OP { code: 0xC9, op: cmp, mode: Immediate,       bytes: 2, cycles: 2 });
   table[0xC5] = Some(OP { code: 0xC5, op: cmp, mode: ZeroPage,        bytes: 2, cycles: 3 });
@@ -129,7 +128,6 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0xC0] = Some(OP { code: 0xC0, op: cpy, mode: Immediate,       bytes: 2, cycles: 2 });
   table[0xC4] = Some(OP { code: 0xC4, op: cpy, mode: ZeroPage,        bytes: 2, cycles: 3 });
   table[0xCC] = Some(OP { code: 0xCC, op: cpy, mode: Absolute,        bytes: 3, cycles: 4 });
-  */
 
   // Increment/Decrement Instructions
   table[0xE6] = Some(OP { code: 0xE6, op: inc, mode: ZeroPage,        bytes: 2, cycles: 5 });

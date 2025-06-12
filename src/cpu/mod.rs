@@ -85,6 +85,12 @@ impl CPU {
     }
   }
 
+  fn get_address_and_value(&mut self, mode: &AddressingMode) -> (u16, u8) {
+    let address = self.get_address(&mode);
+    let value = self.mem_read_u8(address);
+    (address, value)
+  }
+
   fn get_stack_address(&self) -> u16 {
     0x0100 | self.stack as u16
   }
