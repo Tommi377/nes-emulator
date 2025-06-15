@@ -1,6 +1,7 @@
 use crate::cpu::opcode::{
-  OP, arithmetic::*, increment_decrements::*, load_store::*, logical::*, register_transfers::*,
-  shifts::*, stack_operations::*, status_flag_changes::*, system_functions::*,
+  OP, arithmetic::*, increment_decrements::*, jumps::*, load_store::*, logical::*,
+  register_transfers::*, shifts::*, stack_operations::*, status_flag_changes::*,
+  system_functions::*,
 };
 
 // Instruction Set for the Obelisk 6502 CPU
@@ -169,14 +170,12 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0x6E] = Some(OP { code: 0x6E, op: ror, mode: Absolute,        bytes: 3, cycles: 6 });
   table[0x7E] = Some(OP { code: 0x7E, op: ror, mode: Absolute_X,      bytes: 3, cycles: 7 });
 
-  /* TODO
   // Jump Instructions
   table[0x4C] = Some(OP { code: 0x4C, op: jmp, mode: Absolute,        bytes: 3, cycles: 3 });
   table[0x6C] = Some(OP { code: 0x6C, op: jmp, mode: Indirect,        bytes: 3, cycles: 5 });
 
   table[0x20] = Some(OP { code: 0x20, op: jsr, mode: Absolute,        bytes: 3, cycles: 6 });
   table[0x60] = Some(OP { code: 0x60, op: rts, mode: NoneAddressing,  bytes: 1, cycles: 6 });
-  */
 
   /* TODO
   // Branch Instructions

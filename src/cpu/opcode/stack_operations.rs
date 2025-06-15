@@ -1,21 +1,21 @@
 use crate::cpu::{CPU, opcode::opcode_table::AddressingMode};
 
 pub(crate) fn pha(cpu: &mut CPU, _mode: AddressingMode) {
-  cpu.stack_push_value(cpu.reg_a);
+  cpu.stack_push_value_u8(cpu.reg_a);
 }
 
 pub(crate) fn php(cpu: &mut CPU, _mode: AddressingMode) {
   let value = cpu.status | 0b0011_0000; // The B flag and extra bit are both pushed as 1
-  cpu.stack_push_value(value);
+  cpu.stack_push_value_u8(value);
 }
 
 pub(crate) fn pla(cpu: &mut CPU, _mode: AddressingMode) {
-  cpu.reg_a = cpu.stack_pull_value();
+  cpu.reg_a = cpu.stack_pull_value_u8();
   cpu.update_zero_and_negative_flags(cpu.reg_a);
 }
 
 pub(crate) fn plp(cpu: &mut CPU, _mode: AddressingMode) {
-  let value = cpu.stack_pull_value();
+  let value = cpu.stack_pull_value_u8();
   cpu.status &= 0b0011_0000; // Clear all flags except B and extra bit
   cpu.status |= value & 0b1100_1111; // The B flag and extra bit are ignored.
 }

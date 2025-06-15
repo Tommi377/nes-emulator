@@ -101,14 +101,26 @@ impl CPU {
     0x0100 | self.stack as u16
   }
 
-  fn stack_push_value(&mut self, value: u8) {
+  fn stack_push_value_u8(&mut self, value: u8) {
     self.mem_write_u8(self.get_stack_address(), value);
     self.stack = self.stack.wrapping_sub(1);
   }
 
-  fn stack_pull_value(&mut self) -> u8 {
+  fn stack_pull_value_u8(&mut self) -> u8 {
     self.stack = self.stack.wrapping_add(1);
     self.mem_read_u8(self.get_stack_address())
+  }
+
+  fn stack_push_value_u16(&mut self, value: u16) {
+    let [lo, hi] = value.to_le_bytes();
+    self.stack_push_value_u8(hi);
+    self.stack_push_value_u8(lo);
+  }
+
+  fn stack_pull_value_u16(&mut self) -> u16 {
+    let lo = self.stack_pull_value_u8();
+    let hi = self.stack_pull_value_u8();
+    u16::from_le_bytes([lo, hi])
   }
 
   fn get_flag(&self, flag: StatusFlag) -> bool {
