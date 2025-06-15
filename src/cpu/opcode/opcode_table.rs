@@ -1,5 +1,5 @@
 use crate::cpu::opcode::{
-  OP, arithmetic::*, increment_decrements::*, jumps::*, load_store::*, logical::*,
+  OP, arithmetic::*, branches::*, increment_decrements::*, jumps::*, load_store::*, logical::*,
   register_transfers::*, shifts::*, stack_operations::*, status_flag_changes::*,
   system_functions::*,
 };
@@ -177,7 +177,6 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0x20] = Some(OP { code: 0x20, op: jsr, mode: Absolute,        bytes: 3, cycles: 6 });
   table[0x60] = Some(OP { code: 0x60, op: rts, mode: NoneAddressing,  bytes: 1, cycles: 6 });
 
-  /* TODO
   // Branch Instructions
   table[0x90] = Some(OP { code: 0x90, op: bcc, mode: Relative,        bytes: 2, cycles: 2 /* +1 if branch succeeds +2 if to a new page */ });
   table[0xB0] = Some(OP { code: 0xB0, op: bcs, mode: Relative,        bytes: 2, cycles: 2 /* +1 if branch succeeds +2 if to a new page */ });
@@ -187,7 +186,6 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0x10] = Some(OP { code: 0x10, op: bpl, mode: Relative,        bytes: 2, cycles: 2 /* +1 if branch succeeds +2 if to a new page */ });
   table[0x50] = Some(OP { code: 0x50, op: bvc, mode: Relative,        bytes: 2, cycles: 2 /* +1 if branch succeeds +2 if to a new page */ });
   table[0x70] = Some(OP { code: 0x70, op: bvs, mode: Relative,        bytes: 2, cycles: 2 /* +1 if branch succeeds +2 if to a new page */ });
-  */
   
   // Status Flag Changes
   table[0x18] = Some(OP { code: 0x18, op: clc, mode: NoneAddressing,  bytes: 1, cycles: 2 });

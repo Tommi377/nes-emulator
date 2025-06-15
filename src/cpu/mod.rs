@@ -167,6 +167,14 @@ impl CPU {
     self.mem_write_u8(addr + 1, hi);
   }
 
+  fn branch(&mut self, condition: bool) {
+    let offset = self.mem_read_pc_u8() as i8;
+    if condition {
+      let jump_addr = self.pc.wrapping_add(offset as u16);
+      self.pc = jump_addr;
+    }
+  }
+
   fn update_zero_and_negative_flags(&mut self, result: u8) {
     self.status = set_bit(self.status, StatusFlag::Zero as u8, result == 0);
     self.status = set_bit(
