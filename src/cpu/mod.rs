@@ -1,6 +1,7 @@
 pub mod opcode;
 
 use crate::{
+  bus::{Bus, memory::Memory},
   cpu::opcode::{OP, opcode_table::AddressingMode},
   utils::set_bit,
 };
@@ -12,7 +13,7 @@ pub struct CPU {
   pub reg_a: u8,
   pub reg_x: u8,
   pub reg_y: u8,
-  pub memory: [u8; 0xFFFF + 1],
+  pub bus: Bus,
 }
 
 impl CPU {
@@ -24,7 +25,7 @@ impl CPU {
       reg_x: 0,
       reg_y: 0,
       stack: 0xFF,
-      memory: [0; 0xFFFF + 1],
+      bus: Bus::new(),
     }
   }
   pub fn load_and_run(&mut self, program: Vec<u8>) {
@@ -34,11 +35,13 @@ impl CPU {
   }
 
   pub fn load(&mut self, program: Vec<u8>) {
-    self.load_at(program, 0x8000);
+    self.load_at(program, 0x0000);
   }
 
   pub fn load_at(&mut self, program: Vec<u8>, start_address: usize) {
-    self.memory[start_address..(start_address + program.len())].copy_from_slice(&program);
+    for i in 0..(program.len() as u16) {
+      self.mem_write_u8((start_address as u16) + i, program[i as usize]);
+    }
     self.mem_write_u16(0xFFFC, start_address as u16);
     self.reset();
   }
@@ -65,27 +68,6 @@ impl CPU {
       let opcode: OP = self.mem_read_pc_u8().into();
       opcode.execute(self);
     }
-  }
-
-  pub fn mem_read_u8(&self, addr: u16) -> u8 {
-    self.memory[addr as usize]
-  }
-
-  pub fn mem_write_u8(&mut self, addr: u16, data: u8) {
-    self.memory[addr as usize] = data;
-  }
-
-  pub fn mem_read_u16(&self, addr: u16) -> u16 {
-    let lo = self.mem_read_u8(addr) as u16;
-    let hi = self.mem_read_u8(addr + 1) as u16;
-    (hi << 8) | lo
-  }
-
-  pub fn mem_write_u16(&mut self, addr: u16, data: u16) {
-    let lo = data as u8;
-    let hi = (data >> 8) as u8;
-    self.mem_write_u8(addr, lo);
-    self.mem_write_u8(addr + 1, hi);
   }
 
   fn mem_read_pc_u8(&mut self) -> u8 {
@@ -198,6 +180,23 @@ impl CPU {
   }
 }
 
+impl Memory for CPU {
+  fn mem_read_u8(&self, addr: u16) -> u8 {
+    self.bus.mem_read_u8(addr)
+  }
+
+  fn mem_write_u8(&mut self, addr: u16, data: u8) {
+    self.bus.mem_write_u8(addr, data)
+  }
+  fn mem_read_u16(&self, pos: u16) -> u16 {
+    self.bus.mem_read_u16(pos)
+  }
+
+  fn mem_write_u16(&mut self, pos: u16, data: u16) {
+    self.bus.mem_write_u16(pos, data)
+  }
+}
+
 #[allow(dead_code)]
 #[repr(u8)]
 #[derive(Debug, Clone, Copy)]
@@ -221,7 +220,9 @@ mod memory_test {
   fn test_load_program() {
     let mut cpu = CPU::new();
     cpu.load(vec![0xa9, 0x05, 0x00]);
-    assert_eq!(&cpu.memory[0x8000..0x8003], &[0xa9, 0x05, 0x00]);
+    assert_eq!(cpu.mem_read_u8(0x0000), 0xa9);
+    assert_eq!(cpu.mem_read_u8(0x0001), 0x05);
+    assert_eq!(cpu.mem_read_u8(0x0002), 0x00);
   }
 
   #[test]
@@ -229,11 +230,9 @@ mod memory_test {
     let mut cpu = CPU::new();
     let addr: u16 = 0x0000;
     let data: u8 = 0xFF;
-    assert!(cpu.memory[addr as usize] == 0);
+    assert_eq!(cpu.mem_read_u8(addr), 0);
     cpu.mem_write_u8(addr, data);
-    assert!(cpu.memory[addr as usize] == data);
-    let value = cpu.mem_read_u8(addr);
-    assert_eq!(value, data);
+    assert_eq!(cpu.mem_read_u8(addr), data);
   }
 
   #[test]

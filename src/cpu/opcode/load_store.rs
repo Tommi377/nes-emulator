@@ -1,4 +1,7 @@
-use crate::cpu::{CPU, opcode::opcode_table::AddressingMode};
+use crate::{
+  bus::memory::Memory,
+  cpu::{CPU, opcode::opcode_table::AddressingMode},
+};
 
 pub(crate) fn lda(cpu: &mut CPU, mode: AddressingMode) {
   let addr = cpu.get_address(&mode);

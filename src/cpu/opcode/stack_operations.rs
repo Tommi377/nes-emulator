@@ -23,7 +23,7 @@ pub(crate) fn plp(cpu: &mut CPU, _mode: AddressingMode) {
 #[cfg(test)]
 mod stack_operations_test {
   use super::*;
-  use crate::cpu::CPU;
+  use crate::{bus::memory::Memory, cpu::CPU};
 
   #[test]
   fn test_pha_push_accumulator() {

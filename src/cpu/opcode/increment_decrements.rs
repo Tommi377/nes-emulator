@@ -1,4 +1,7 @@
-use crate::cpu::{CPU, opcode::opcode_table::AddressingMode};
+use crate::{
+  bus::memory::Memory,
+  cpu::{CPU, opcode::opcode_table::AddressingMode},
+};
 
 pub(crate) fn inc(cpu: &mut CPU, mode: AddressingMode) {
   let addr = cpu.get_address(&mode);
@@ -43,8 +46,8 @@ mod increment_decrements_tests {
     #[test]
     fn test_inc_zero_page() {
       let mut cpu = CPU::new();
-      cpu.pc = 0x8000;
-      cpu.mem_write_u8(0x8000, 0x10); // ZeroPage address
+      cpu.pc = 0x0600;
+      cpu.mem_write_u8(0x0600, 0x10); // ZeroPage address
       cpu.mem_write_u8(0x10, 0x05);
       inc(&mut cpu, AddressingMode::ZeroPage);
       assert_eq!(cpu.mem_read_u8(0x10), 0x06);
@@ -55,9 +58,9 @@ mod increment_decrements_tests {
     #[test]
     fn test_inc_zero_page_x() {
       let mut cpu = CPU::new();
-      cpu.pc = 0x8000;
+      cpu.pc = 0x0600;
       cpu.reg_x = 0x05;
-      cpu.mem_write_u8(0x8000, 0x10); // ZeroPage base address
+      cpu.mem_write_u8(0x0600, 0x10); // ZeroPage base address
       cpu.mem_write_u8(0x15, 0x10); // 0x10 + 0x05 = 0x15
       inc(&mut cpu, AddressingMode::ZeroPage_X);
       assert_eq!(cpu.mem_read_u8(0x15), 0x11);
@@ -68,8 +71,8 @@ mod increment_decrements_tests {
     #[test]
     fn test_inc_absolute() {
       let mut cpu = CPU::new();
-      cpu.pc = 0x8000;
-      cpu.mem_write_u16(0x8000, 0x1234); // Absolute address
+      cpu.pc = 0x0600;
+      cpu.mem_write_u16(0x0600, 0x1234); // Absolute address
       cpu.mem_write_u8(0x1234, 0x7F);
       inc(&mut cpu, AddressingMode::Absolute);
       assert_eq!(cpu.mem_read_u8(0x1234), 0x80);
@@ -80,9 +83,9 @@ mod increment_decrements_tests {
     #[test]
     fn test_inc_absolute_x() {
       let mut cpu = CPU::new();
-      cpu.pc = 0x8000;
+      cpu.pc = 0x0600;
       cpu.reg_x = 0x10;
-      cpu.mem_write_u16(0x8000, 0x1234); // Absolute base address
+      cpu.mem_write_u16(0x0600, 0x1234); // Absolute base address
       cpu.mem_write_u8(0x1244, 0xFE); // 0x1234 + 0x10 = 0x1244
       inc(&mut cpu, AddressingMode::Absolute_X);
       assert_eq!(cpu.mem_read_u8(0x1244), 0xFF);
@@ -93,8 +96,8 @@ mod increment_decrements_tests {
     #[test]
     fn test_inc_overflow() {
       let mut cpu = CPU::new();
-      cpu.pc = 0x8000;
-      cpu.mem_write_u8(0x8000, 0x10); // ZeroPage address
+      cpu.pc = 0x0600;
+      cpu.mem_write_u8(0x0600, 0x10); // ZeroPage address
       cpu.mem_write_u8(0x10, 0xFF);
       inc(&mut cpu, AddressingMode::ZeroPage);
       assert_eq!(cpu.mem_read_u8(0x10), 0x00);
@@ -105,8 +108,8 @@ mod increment_decrements_tests {
     #[test]
     fn test_inc_to_negative() {
       let mut cpu = CPU::new();
-      cpu.pc = 0x8000;
-      cpu.mem_write_u8(0x8000, 0x10); // ZeroPage address
+      cpu.pc = 0x0600;
+      cpu.mem_write_u8(0x0600, 0x10); // ZeroPage address
       cpu.mem_write_u8(0x10, 0x7F);
       inc(&mut cpu, AddressingMode::ZeroPage);
       assert_eq!(cpu.mem_read_u8(0x10), 0x80);
@@ -117,8 +120,8 @@ mod increment_decrements_tests {
     #[test]
     fn test_inc_to_zero() {
       let mut cpu = CPU::new();
-      cpu.pc = 0x8000;
-      cpu.mem_write_u8(0x8000, 0x10); // ZeroPage address
+      cpu.pc = 0x0600;
+      cpu.mem_write_u8(0x0600, 0x10); // ZeroPage address
       cpu.mem_write_u8(0x10, 0xFF);
       inc(&mut cpu, AddressingMode::ZeroPage);
       assert_eq!(cpu.mem_read_u8(0x10), 0x00);
@@ -246,8 +249,8 @@ mod increment_decrements_tests {
     #[test]
     fn test_dec_zero_page() {
       let mut cpu = CPU::new();
-      cpu.pc = 0x8000;
-      cpu.mem_write_u8(0x8000, 0x10); // ZeroPage address
+      cpu.pc = 0x0600;
+      cpu.mem_write_u8(0x0600, 0x10); // ZeroPage address
       cpu.mem_write_u8(0x10, 0x05);
       dec(&mut cpu, AddressingMode::ZeroPage);
       assert_eq!(cpu.mem_read_u8(0x10), 0x04);
@@ -258,9 +261,9 @@ mod increment_decrements_tests {
     #[test]
     fn test_dec_zero_page_x() {
       let mut cpu = CPU::new();
-      cpu.pc = 0x8000;
+      cpu.pc = 0x0600;
       cpu.reg_x = 0x05;
-      cpu.mem_write_u8(0x8000, 0x10); // ZeroPage base address
+      cpu.mem_write_u8(0x0600, 0x10); // ZeroPage base address
       cpu.mem_write_u8(0x15, 0x10); // 0x10 + 0x05 = 0x15
       dec(&mut cpu, AddressingMode::ZeroPage_X);
       assert_eq!(cpu.mem_read_u8(0x15), 0x0F);
@@ -271,8 +274,8 @@ mod increment_decrements_tests {
     #[test]
     fn test_dec_absolute() {
       let mut cpu = CPU::new();
-      cpu.pc = 0x8000;
-      cpu.mem_write_u16(0x8000, 0x1234); // Absolute address
+      cpu.pc = 0x0600;
+      cpu.mem_write_u16(0x0600, 0x1234); // Absolute address
       cpu.mem_write_u8(0x1234, 0x80);
       dec(&mut cpu, AddressingMode::Absolute);
       assert_eq!(cpu.mem_read_u8(0x1234), 0x7F);
@@ -283,9 +286,9 @@ mod increment_decrements_tests {
     #[test]
     fn test_dec_absolute_x() {
       let mut cpu = CPU::new();
-      cpu.pc = 0x8000;
+      cpu.pc = 0x0600;
       cpu.reg_x = 0x10;
-      cpu.mem_write_u16(0x8000, 0x1234); // Absolute base address
+      cpu.mem_write_u16(0x0600, 0x1234); // Absolute base address
       cpu.mem_write_u8(0x1244, 0x02); // 0x1234 + 0x10 = 0x1244
       dec(&mut cpu, AddressingMode::Absolute_X);
       assert_eq!(cpu.mem_read_u8(0x1244), 0x01);
@@ -296,8 +299,8 @@ mod increment_decrements_tests {
     #[test]
     fn test_dec_underflow() {
       let mut cpu = CPU::new();
-      cpu.pc = 0x8000;
-      cpu.mem_write_u8(0x8000, 0x10); // ZeroPage address
+      cpu.pc = 0x0600;
+      cpu.mem_write_u8(0x0600, 0x10); // ZeroPage address
       cpu.mem_write_u8(0x10, 0x00);
       dec(&mut cpu, AddressingMode::ZeroPage);
       assert_eq!(cpu.mem_read_u8(0x10), 0xFF);
@@ -308,8 +311,8 @@ mod increment_decrements_tests {
     #[test]
     fn test_dec_to_zero() {
       let mut cpu = CPU::new();
-      cpu.pc = 0x8000;
-      cpu.mem_write_u8(0x8000, 0x10); // ZeroPage address
+      cpu.pc = 0x0600;
+      cpu.mem_write_u8(0x0600, 0x10); // ZeroPage address
       cpu.mem_write_u8(0x10, 0x01);
       dec(&mut cpu, AddressingMode::ZeroPage);
       assert_eq!(cpu.mem_read_u8(0x10), 0x00);
@@ -320,8 +323,8 @@ mod increment_decrements_tests {
     #[test]
     fn test_dec_to_positive() {
       let mut cpu = CPU::new();
-      cpu.pc = 0x8000;
-      cpu.mem_write_u8(0x8000, 0x10); // ZeroPage address
+      cpu.pc = 0x0600;
+      cpu.mem_write_u8(0x0600, 0x10); // ZeroPage address
       cpu.mem_write_u8(0x10, 0x80);
       dec(&mut cpu, AddressingMode::ZeroPage);
       assert_eq!(cpu.mem_read_u8(0x10), 0x7F);

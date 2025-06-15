@@ -68,15 +68,15 @@ fn cpu_addition_with_carry(cpu: &mut CPU, value: u8) {
 #[cfg(test)]
 mod adc_tests {
   use super::*;
-  use crate::cpu::StatusFlag;
+  use crate::{bus::memory::Memory, cpu::StatusFlag};
 
   #[test]
   fn test_adc_basic_addition() {
     let mut cpu = crate::cpu::CPU::new();
     cpu.reg_a = 0x30;
     cpu.mem_write_u8(0x10, 0x30);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10); // Address for zero page mode
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10); // Address for zero page mode
 
     adc(&mut cpu, AddressingMode::ZeroPage);
 
@@ -93,8 +93,8 @@ mod adc_tests {
     cpu.reg_a = 0x50;
     cpu.status |= StatusFlag::Carry as u8; // Set carry flag
     cpu.mem_write_u8(0x10, 0x30);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     adc(&mut cpu, AddressingMode::ZeroPage);
 
@@ -108,8 +108,8 @@ mod adc_tests {
     let mut cpu = crate::cpu::CPU::new();
     cpu.reg_a = 0xFF;
     cpu.mem_write_u8(0x10, 0x01);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     adc(&mut cpu, AddressingMode::ZeroPage);
 
@@ -124,8 +124,8 @@ mod adc_tests {
     let mut cpu = crate::cpu::CPU::new();
     cpu.reg_a = 0x7F; // +127
     cpu.mem_write_u8(0x10, 0x01); // +1
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     adc(&mut cpu, AddressingMode::ZeroPage);
 
@@ -140,8 +140,8 @@ mod adc_tests {
     let mut cpu = crate::cpu::CPU::new();
     cpu.reg_a = 0x80; // -128
     cpu.mem_write_u8(0x10, 0xFF); // -1
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     adc(&mut cpu, AddressingMode::ZeroPage);
 
@@ -156,8 +156,8 @@ mod adc_tests {
     let mut cpu = crate::cpu::CPU::new();
     cpu.reg_a = 0x80; // -128
     cpu.mem_write_u8(0x10, 0x7F); // +127
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     adc(&mut cpu, AddressingMode::ZeroPage);
 
@@ -171,8 +171,8 @@ mod adc_tests {
   fn test_adc_immediate_mode() {
     let mut cpu = crate::cpu::CPU::new();
     cpu.reg_a = 0x10;
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x20); // Immediate value
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x20); // Immediate value
 
     adc(&mut cpu, AddressingMode::Immediate);
 
@@ -187,7 +187,10 @@ mod adc_tests {
 #[cfg(test)]
 mod sbc_tests {
   use super::*;
-  use crate::cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode};
+  use crate::{
+    bus::memory::Memory,
+    cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode},
+  };
 
   #[test]
   fn test_sbc_basic_subtraction() {
@@ -195,8 +198,8 @@ mod sbc_tests {
     cpu.reg_a = 0x50; // 80
     cpu.status |= StatusFlag::Carry as u8; // Set carry flag (no borrow)
     cpu.mem_write_u8(0x10, 0x30); // 48
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10); // Address for zero page mode
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10); // Address for zero page mode
 
     sbc(&mut cpu, AddressingMode::ZeroPage);
 
@@ -213,8 +216,8 @@ mod sbc_tests {
     cpu.reg_a = 0x50; // 80
     cpu.status &= !(StatusFlag::Carry as u8); // Clear carry flag (borrow)
     cpu.mem_write_u8(0x10, 0x30); // 48
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     sbc(&mut cpu, AddressingMode::ZeroPage);
 
@@ -230,8 +233,8 @@ mod sbc_tests {
     cpu.reg_a = 0x30; // 48
     cpu.status |= StatusFlag::Carry as u8; // Set carry flag (no borrow)
     cpu.mem_write_u8(0x10, 0x50); // 80
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     sbc(&mut cpu, AddressingMode::ZeroPage);
 
@@ -247,8 +250,8 @@ mod sbc_tests {
     cpu.reg_a = 0x50; // 80
     cpu.status |= StatusFlag::Carry as u8; // Set carry flag (no borrow)
     cpu.mem_write_u8(0x10, 0x50); // 80
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     sbc(&mut cpu, AddressingMode::ZeroPage);
 
@@ -264,8 +267,8 @@ mod sbc_tests {
     cpu.reg_a = 0x7F; // +127
     cpu.status |= StatusFlag::Carry as u8; // Set carry flag (no borrow)
     cpu.mem_write_u8(0x10, 0xFF); // -1 (255)
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     sbc(&mut cpu, AddressingMode::ZeroPage);
 
@@ -281,8 +284,8 @@ mod sbc_tests {
     cpu.reg_a = 0x80; // -128
     cpu.status |= StatusFlag::Carry as u8; // Set carry flag (no borrow)
     cpu.mem_write_u8(0x10, 0x01); // +1
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     sbc(&mut cpu, AddressingMode::ZeroPage);
 
@@ -298,8 +301,8 @@ mod sbc_tests {
     cpu.reg_a = 0x50; // +80
     cpu.status |= StatusFlag::Carry as u8; // Set carry flag (no borrow)
     cpu.mem_write_u8(0x10, 0x30); // +48
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     sbc(&mut cpu, AddressingMode::ZeroPage);
 
@@ -314,8 +317,8 @@ mod sbc_tests {
     let mut cpu = CPU::new();
     cpu.reg_a = 0x30; // 48
     cpu.status |= StatusFlag::Carry as u8; // Set carry flag (no borrow)
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10); // Immediate value 16
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10); // Immediate value 16
 
     sbc(&mut cpu, AddressingMode::Immediate);
 
@@ -332,8 +335,8 @@ mod sbc_tests {
     cpu.reg_a = 0x00; // 0
     cpu.status &= !(StatusFlag::Carry as u8); // Clear carry flag (borrow)
     cpu.mem_write_u8(0x10, 0x01); // 1
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     sbc(&mut cpu, AddressingMode::ZeroPage);
 
@@ -351,8 +354,8 @@ mod sbc_tests {
     cpu.reg_a = 0x42;
     cpu.status |= StatusFlag::Carry as u8;
     cpu.mem_write_u8(0x10, 0x00);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     sbc(&mut cpu, AddressingMode::ZeroPage);
 
@@ -360,12 +363,12 @@ mod sbc_tests {
     assert_ne!(cpu.status & StatusFlag::Carry as u8, 0); // Carry should be set
 
     // Reset for next test
-    cpu.pc = 0x8000;
+    cpu.pc = 0x0600;
 
     // Test subtracting 0 with carry clear (borrow)
     cpu.reg_a = 0x42;
     cpu.status &= !(StatusFlag::Carry as u8);
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.mem_write_u8(0x0600, 0x10);
 
     sbc(&mut cpu, AddressingMode::ZeroPage);
 
@@ -379,8 +382,8 @@ mod sbc_tests {
     cpu.reg_a = 0xFF; // 255
     cpu.status |= StatusFlag::Carry as u8; // Set carry flag (no borrow)
     cpu.mem_write_u8(0x10, 0xFF); // 255
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     sbc(&mut cpu, AddressingMode::ZeroPage);
 
@@ -394,15 +397,18 @@ mod sbc_tests {
 #[cfg(test)]
 mod cmp_tests {
   use super::*;
-  use crate::cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode};
+  use crate::{
+    bus::memory::Memory,
+    cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode},
+  };
 
   #[test]
   fn test_cmp_equal_values() {
     let mut cpu = CPU::new();
     cpu.reg_a = 0x50;
     cpu.mem_write_u8(0x10, 0x50);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cmp(&mut cpu, AddressingMode::ZeroPage);
 
@@ -417,8 +423,8 @@ mod cmp_tests {
     let mut cpu = CPU::new();
     cpu.reg_a = 0x80;
     cpu.mem_write_u8(0x10, 0x30);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cmp(&mut cpu, AddressingMode::ZeroPage);
 
@@ -433,8 +439,8 @@ mod cmp_tests {
     let mut cpu = CPU::new();
     cpu.reg_a = 0x30;
     cpu.mem_write_u8(0x10, 0x80);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cmp(&mut cpu, AddressingMode::ZeroPage);
 
@@ -451,8 +457,8 @@ mod cmp_tests {
     // Test comparing 0x00 with 0x00
     cpu.reg_a = 0x00;
     cpu.mem_write_u8(0x10, 0x00);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cmp(&mut cpu, AddressingMode::ZeroPage);
 
@@ -463,8 +469,8 @@ mod cmp_tests {
     // Test comparing 0xFF with 0xFF
     cpu.reg_a = 0xFF;
     cpu.mem_write_u8(0x10, 0xFF);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cmp(&mut cpu, AddressingMode::ZeroPage);
 
@@ -478,8 +484,8 @@ mod cmp_tests {
     let mut cpu = CPU::new();
     cpu.reg_a = 0x00;
     cpu.mem_write_u8(0x10, 0x01);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cmp(&mut cpu, AddressingMode::ZeroPage);
 
@@ -493,8 +499,8 @@ mod cmp_tests {
   fn test_cmp_immediate_mode() {
     let mut cpu = CPU::new();
     cpu.reg_a = 0x42;
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x42);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x42);
 
     cmp(&mut cpu, AddressingMode::Immediate);
 
@@ -508,15 +514,18 @@ mod cmp_tests {
 #[cfg(test)]
 mod cpx_tests {
   use super::*;
-  use crate::cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode};
+  use crate::{
+    bus::memory::Memory,
+    cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode},
+  };
 
   #[test]
   fn test_cpx_equal_values() {
     let mut cpu = CPU::new();
     cpu.reg_x = 0x50;
     cpu.mem_write_u8(0x10, 0x50);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cpx(&mut cpu, AddressingMode::ZeroPage);
 
@@ -531,8 +540,8 @@ mod cpx_tests {
     let mut cpu = CPU::new();
     cpu.reg_x = 0x80;
     cpu.mem_write_u8(0x10, 0x30);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cpx(&mut cpu, AddressingMode::ZeroPage);
 
@@ -547,8 +556,8 @@ mod cpx_tests {
     let mut cpu = CPU::new();
     cpu.reg_x = 0x30;
     cpu.mem_write_u8(0x10, 0x80);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cpx(&mut cpu, AddressingMode::ZeroPage);
 
@@ -565,8 +574,8 @@ mod cpx_tests {
     // Test comparing 0x00 with 0x00
     cpu.reg_x = 0x00;
     cpu.mem_write_u8(0x10, 0x00);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cpx(&mut cpu, AddressingMode::ZeroPage);
 
@@ -577,8 +586,8 @@ mod cpx_tests {
     // Test comparing 0xFF with 0xFF
     cpu.reg_x = 0xFF;
     cpu.mem_write_u8(0x10, 0xFF);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cpx(&mut cpu, AddressingMode::ZeroPage);
 
@@ -592,8 +601,8 @@ mod cpx_tests {
     let mut cpu = CPU::new();
     cpu.reg_x = 0x00;
     cpu.mem_write_u8(0x10, 0x01);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cpx(&mut cpu, AddressingMode::ZeroPage);
 
@@ -607,8 +616,8 @@ mod cpx_tests {
   fn test_cpx_immediate_mode() {
     let mut cpu = CPU::new();
     cpu.reg_x = 0x42;
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x42);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x42);
 
     cpx(&mut cpu, AddressingMode::Immediate);
 
@@ -624,8 +633,8 @@ mod cpx_tests {
     cpu.reg_a = 0x10; // Different from reg_x
     cpu.reg_x = 0x20;
     cpu.mem_write_u8(0x10, 0x15);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cpx(&mut cpu, AddressingMode::ZeroPage);
 
@@ -640,15 +649,18 @@ mod cpx_tests {
 #[cfg(test)]
 mod cpy_tests {
   use super::*;
-  use crate::cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode};
+  use crate::{
+    bus::memory::Memory,
+    cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode},
+  };
 
   #[test]
   fn test_cpy_equal_values() {
     let mut cpu = CPU::new();
     cpu.reg_y = 0x50;
     cpu.mem_write_u8(0x10, 0x50);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cpy(&mut cpu, AddressingMode::ZeroPage);
 
@@ -663,8 +675,8 @@ mod cpy_tests {
     let mut cpu = CPU::new();
     cpu.reg_y = 0x80;
     cpu.mem_write_u8(0x10, 0x30);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cpy(&mut cpu, AddressingMode::ZeroPage);
 
@@ -679,8 +691,8 @@ mod cpy_tests {
     let mut cpu = CPU::new();
     cpu.reg_y = 0x30;
     cpu.mem_write_u8(0x10, 0x80);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cpy(&mut cpu, AddressingMode::ZeroPage);
 
@@ -697,8 +709,8 @@ mod cpy_tests {
     // Test comparing 0x00 with 0x00
     cpu.reg_y = 0x00;
     cpu.mem_write_u8(0x10, 0x00);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cpy(&mut cpu, AddressingMode::ZeroPage);
 
@@ -709,8 +721,8 @@ mod cpy_tests {
     // Test comparing 0xFF with 0xFF
     cpu.reg_y = 0xFF;
     cpu.mem_write_u8(0x10, 0xFF);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cpy(&mut cpu, AddressingMode::ZeroPage);
 
@@ -724,8 +736,8 @@ mod cpy_tests {
     let mut cpu = CPU::new();
     cpu.reg_y = 0x00;
     cpu.mem_write_u8(0x10, 0x01);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cpy(&mut cpu, AddressingMode::ZeroPage);
 
@@ -739,8 +751,8 @@ mod cpy_tests {
   fn test_cpy_immediate_mode() {
     let mut cpu = CPU::new();
     cpu.reg_y = 0x42;
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x42);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x42);
 
     cpy(&mut cpu, AddressingMode::Immediate);
 
@@ -757,8 +769,8 @@ mod cpy_tests {
     cpu.reg_x = 0x15; // Different from reg_y
     cpu.reg_y = 0x20;
     cpu.mem_write_u8(0x10, 0x15);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cpy(&mut cpu, AddressingMode::ZeroPage);
 
@@ -777,8 +789,8 @@ mod cpy_tests {
     // Test 0xFF compared to 0x00 (maximum vs minimum)
     cpu.reg_y = 0xFF;
     cpu.mem_write_u8(0x10, 0x00);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cpy(&mut cpu, AddressingMode::ZeroPage);
 
@@ -790,8 +802,8 @@ mod cpy_tests {
     // Test 0x00 compared to 0xFF (minimum vs maximum)
     cpu.reg_y = 0x00;
     cpu.mem_write_u8(0x10, 0xFF);
-    cpu.pc = 0x8000;
-    cpu.mem_write_u8(0x8000, 0x10);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10);
 
     cpy(&mut cpu, AddressingMode::ZeroPage);
 

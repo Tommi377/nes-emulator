@@ -19,13 +19,16 @@ pub(crate) fn rts(cpu: &mut CPU, _mode: AddressingMode) {
 #[cfg(test)]
 mod jmp_tests {
   use super::*;
-  use crate::cpu::{CPU, opcode::opcode_table::AddressingMode};
+  use crate::{
+    bus::memory::Memory,
+    cpu::{CPU, opcode::opcode_table::AddressingMode},
+  };
 
   #[test]
   fn test_jmp_absolute() {
     let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
-    cpu.mem_write_u16(0x8000, 0x1234); // Jump to address 0x1234
+    cpu.pc = 0x0600;
+    cpu.mem_write_u16(0x0600, 0x1234); // Jump to address 0x1234
 
     jmp(&mut cpu, AddressingMode::Absolute);
 
@@ -35,8 +38,8 @@ mod jmp_tests {
   #[test]
   fn test_jmp_absolute_zero_address() {
     let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
-    cpu.mem_write_u16(0x8000, 0x0000); // Jump to address 0x0000
+    cpu.pc = 0x0600;
+    cpu.mem_write_u16(0x0600, 0x0000); // Jump to address 0x0000
 
     jmp(&mut cpu, AddressingMode::Absolute);
 
@@ -46,8 +49,8 @@ mod jmp_tests {
   #[test]
   fn test_jmp_absolute_max_address() {
     let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
-    cpu.mem_write_u16(0x8000, 0xFFFF); // Jump to address 0xFFFF
+    cpu.pc = 0x0600;
+    cpu.mem_write_u16(0x0600, 0xFFFF); // Jump to address 0xFFFF
 
     jmp(&mut cpu, AddressingMode::Absolute);
 
@@ -57,8 +60,8 @@ mod jmp_tests {
   #[test]
   fn test_jmp_indirect() {
     let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
-    cpu.mem_write_u16(0x8000, 0x1000); // Pointer to address 0x1000
+    cpu.pc = 0x0600;
+    cpu.mem_write_u16(0x0600, 0x1000); // Pointer to address 0x1000
     cpu.mem_write_u16(0x1000, 0x5678); // Target address stored at 0x1000
 
     jmp(&mut cpu, AddressingMode::Indirect);
@@ -72,8 +75,8 @@ mod jmp_tests {
     // When the indirect address is at a page boundary (e.g., 0x10FF),
     // the high byte should be read from 0x1000, not 0x1100
     let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
-    cpu.mem_write_u16(0x8000, 0x10FF); // Pointer to address 0x10FF (page boundary)
+    cpu.pc = 0x0600;
+    cpu.mem_write_u16(0x0600, 0x10FF); // Pointer to address 0x10FF (page boundary)
     cpu.mem_write_u8(0x10FF, 0x34); // Low byte of target address
     cpu.mem_write_u8(0x1000, 0x12); // High byte of target address (should be read from 0x1000, not 0x1100)
     cpu.mem_write_u8(0x1100, 0x56); // This should NOT be used as high byte
@@ -87,32 +90,32 @@ mod jmp_tests {
   #[test]
   fn test_jmp_indirect_zero_pointer() {
     let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
-    cpu.mem_write_u16(0x8000, 0x0000); // Pointer to address 0x0000
-    cpu.mem_write_u16(0x0000, 0xABCD); // Target address stored at 0x0000
+    cpu.pc = 0x0600;
+    cpu.mem_write_u16(0x0600, 0x0000); // Pointer to address 0x0000
+    cpu.mem_write_u16(0x0000, 0x0123); // Target address stored at 0x0000
 
     jmp(&mut cpu, AddressingMode::Indirect);
 
-    assert_eq!(cpu.pc, 0xABCD);
+    assert_eq!(cpu.pc, 0x0123);
   }
 
   #[test]
   fn test_jmp_indirect_max_pointer() {
     let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
-    cpu.mem_write_u16(0x8000, 0xFFFE); // Pointer to address 0xFFFE
-    cpu.mem_write_u16(0xFFFE, 0x1357); // Target address stored at 0xFFFE
+    cpu.pc = 0x0600;
+    cpu.mem_write_u16(0x0600, 0x0123); // Pointer to address 0xFFFE
+    cpu.mem_write_u16(0x0123, 0x0321); // Target address stored at 0xFFFE
 
     jmp(&mut cpu, AddressingMode::Indirect);
 
-    assert_eq!(cpu.pc, 0x1357);
+    assert_eq!(cpu.pc, 0x0321);
   }
 
   #[test]
   fn test_jmp_absolute_with_different_initial_pc() {
     let mut cpu = CPU::new();
-    cpu.pc = 0x2000; // Different starting PC
-    cpu.mem_write_u16(0x2000, 0x8888); // Jump to address 0x8888
+    cpu.pc = 0x0020; // Different starting PC
+    cpu.mem_write_u16(0x0020, 0x8888); // Jump to address 0x8888
 
     jmp(&mut cpu, AddressingMode::Absolute);
 
@@ -129,8 +132,8 @@ mod jmp_tests {
     cpu.status = 0b1010_1010;
     cpu.stack = 0xFD;
 
-    cpu.pc = 0x8000;
-    cpu.mem_write_u16(0x8000, 0x3000); // Jump to address 0x3000
+    cpu.pc = 0x0600;
+    cpu.mem_write_u16(0x0600, 0x3000); // Jump to address 0x3000
 
     jmp(&mut cpu, AddressingMode::Absolute);
 
@@ -146,39 +149,42 @@ mod jmp_tests {
   #[test]
   fn test_jmp_can_jump_to_same_location() {
     let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
-    cpu.mem_write_u16(0x8000, 0x8000); // Jump to same address (infinite loop)
+    cpu.pc = 0x0600;
+    cpu.mem_write_u16(0x0600, 0x0600); // Jump to same address (infinite loop)
 
     jmp(&mut cpu, AddressingMode::Absolute);
 
-    assert_eq!(cpu.pc, 0x8000);
+    assert_eq!(cpu.pc, 0x0600);
   }
 
   #[test]
   fn test_jmp_indirect_chain() {
     // Test multiple levels of indirection (though this would require multiple JMP instructions)
     let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
-    cpu.mem_write_u16(0x8000, 0x2000); // First indirect pointer
-    cpu.mem_write_u16(0x2000, 0x4000); // Target address
+    cpu.pc = 0x0600;
+    cpu.mem_write_u16(0x0600, 0x0050); // First indirect pointer
+    cpu.mem_write_u16(0x0050, 0x0150); // Target address
 
     jmp(&mut cpu, AddressingMode::Indirect);
 
-    assert_eq!(cpu.pc, 0x4000);
+    assert_eq!(cpu.pc, 0x0150);
   }
 }
 
 #[cfg(test)]
 mod jsr_tests {
   use super::*;
-  use crate::cpu::{CPU, opcode::opcode_table::AddressingMode};
+  use crate::{
+    bus::memory::Memory,
+    cpu::{CPU, opcode::opcode_table::AddressingMode},
+  };
 
   #[test]
   fn test_jsr_absolute() {
     let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
+    cpu.pc = 0x0600;
     cpu.stack = 0xFF; // Initialize stack pointer
-    cpu.mem_write_u16(0x8000, 0x3000); // Jump to subroutine at 0x3000
+    cpu.mem_write_u16(0x0600, 0x3000); // Jump to subroutine at 0x3000
 
     jsr(&mut cpu, AddressingMode::Absolute);
 
@@ -186,8 +192,8 @@ mod jsr_tests {
     assert_eq!(cpu.pc, 0x3000);
     // Stack pointer should be decremented by 2 (16-bit push)
     assert_eq!(cpu.stack, 0xFD);
-    // Return address should be PC after reading the target (0x8002 - 1 = 0x8001)
-    assert_eq!(cpu.mem_read_u16(0x01FE), 0x8001);
+    // Return address should be PC after reading the target (0x0602 - 1 = 0x0601)
+    assert_eq!(cpu.mem_read_u16(0x01FE), 0x0601);
   }
 
   #[test]
@@ -208,42 +214,42 @@ mod jsr_tests {
   #[test]
   fn test_jsr_stack_wrapping() {
     let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
+    cpu.pc = 0x0600;
     cpu.stack = 0x01; // Near bottom of stack
-    cpu.mem_write_u16(0x8000, 0x2000);
+    cpu.mem_write_u16(0x0600, 0x2000);
 
     jsr(&mut cpu, AddressingMode::Absolute);
 
     // Stack should wrap around
     assert_eq!(cpu.stack, 0xFF);
-    // Return address should be stored at wrapped location (0x8002 - 1 = 0x8001)
-    assert_eq!(cpu.mem_read_u16(0x0100), 0x8001);
+    // Return address should be stored at wrapped location (0x0602 - 1 = 0x0601)
+    assert_eq!(cpu.mem_read_u16(0x0100), 0x0601);
   }
 
   #[test]
   fn test_jsr_zero_address() {
     let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
+    cpu.pc = 0x0600;
     cpu.stack = 0xFF;
-    cpu.mem_write_u16(0x8000, 0x0000); // Jump to address 0x0000
+    cpu.mem_write_u16(0x0600, 0x0000); // Jump to address 0x0000
 
     jsr(&mut cpu, AddressingMode::Absolute);
 
     assert_eq!(cpu.pc, 0x0000);
-    assert_eq!(cpu.mem_read_u16(0x01FE), 0x8001);
+    assert_eq!(cpu.mem_read_u16(0x01FE), 0x0601);
   }
 
   #[test]
   fn test_jsr_max_address() {
     let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
+    cpu.pc = 0x0600;
     cpu.stack = 0xFF;
-    cpu.mem_write_u16(0x8000, 0xFFFF); // Jump to max address
+    cpu.mem_write_u16(0x0600, 0xFFFF); // Jump to max address
 
     jsr(&mut cpu, AddressingMode::Absolute);
 
     assert_eq!(cpu.pc, 0xFFFF);
-    assert_eq!(cpu.mem_read_u16(0x01FE), 0x8001);
+    assert_eq!(cpu.mem_read_u16(0x01FE), 0x0601);
   }
 
   #[test]
@@ -255,9 +261,9 @@ mod jsr_tests {
     cpu.reg_y = 0x66;
     cpu.status = 0b1010_1010;
 
-    cpu.pc = 0x8000;
+    cpu.pc = 0x0600;
     cpu.stack = 0xFF;
-    cpu.mem_write_u16(0x8000, 0x3000);
+    cpu.mem_write_u16(0x0600, 0x3000);
 
     jsr(&mut cpu, AddressingMode::Absolute);
 
@@ -275,24 +281,24 @@ mod jsr_tests {
     cpu.stack = 0xFF;
 
     // First JSR call
-    cpu.pc = 0x8000;
-    cpu.mem_write_u16(0x8000, 0x3000);
+    cpu.pc = 0x0600;
+    cpu.mem_write_u16(0x0600, 0x0300);
     jsr(&mut cpu, AddressingMode::Absolute);
 
-    assert_eq!(cpu.pc, 0x3000);
+    assert_eq!(cpu.pc, 0x0300);
     assert_eq!(cpu.stack, 0xFD);
-    assert_eq!(cpu.mem_read_u16(0x01FE), 0x8001);
+    assert_eq!(cpu.mem_read_u16(0x01FE), 0x0601);
 
     // Second JSR call (nested subroutine)
-    cpu.pc = 0x3000;
-    cpu.mem_write_u16(0x3000, 0x4000);
+    cpu.pc = 0x0300;
+    cpu.mem_write_u16(0x0300, 0x0400);
     jsr(&mut cpu, AddressingMode::Absolute);
 
-    assert_eq!(cpu.pc, 0x4000);
+    assert_eq!(cpu.pc, 0x0400);
     assert_eq!(cpu.stack, 0xFB);
-    assert_eq!(cpu.mem_read_u16(0x01FC), 0x3001);
+    assert_eq!(cpu.mem_read_u16(0x01FC), 0x0301);
     // First return address should still be there
-    assert_eq!(cpu.mem_read_u16(0x01FE), 0x8001);
+    assert_eq!(cpu.mem_read_u16(0x01FE), 0x0601);
   }
 
   #[test]
@@ -315,18 +321,21 @@ mod jsr_tests {
 #[cfg(test)]
 mod rts_tests {
   use super::*;
-  use crate::cpu::{CPU, opcode::opcode_table::AddressingMode};
+  use crate::{
+    bus::memory::Memory,
+    cpu::{CPU, opcode::opcode_table::AddressingMode},
+  };
 
   #[test]
   fn test_rts_basic() {
     let mut cpu = CPU::new();
     cpu.stack = 0xFD; // Stack as if JSR was called
-    cpu.mem_write_u16(0x01FE, 0x8001); // Return address on stack
+    cpu.mem_write_u16(0x01FE, 0x0601); // Return address on stack
 
     rts(&mut cpu, AddressingMode::NoneAddressing);
 
     // PC should be return address + 1
-    assert_eq!(cpu.pc, 0x8002);
+    assert_eq!(cpu.pc, 0x0602);
     // Stack pointer should be incremented by 2
     assert_eq!(cpu.stack, 0xFF);
   }
@@ -409,7 +418,7 @@ mod rts_tests {
     // Simulate two nested JSR calls
     cpu.stack = 0xFB; // Stack after two JSR calls
     cpu.mem_write_u16(0x01FC, 0x3001); // Inner subroutine return
-    cpu.mem_write_u16(0x01FE, 0x8001); // Outer subroutine return
+    cpu.mem_write_u16(0x01FE, 0x0601); // Outer subroutine return
 
     // First RTS (return from inner subroutine)
     rts(&mut cpu, AddressingMode::NoneAddressing);
@@ -420,7 +429,7 @@ mod rts_tests {
     // Second RTS (return from outer subroutine)
     rts(&mut cpu, AddressingMode::NoneAddressing);
 
-    assert_eq!(cpu.pc, 0x8002); // 0x8001 + 1
+    assert_eq!(cpu.pc, 0x0602); // 0x0601 + 1
     assert_eq!(cpu.stack, 0xFF);
   }
 
@@ -442,14 +451,17 @@ mod rts_tests {
 #[cfg(test)]
 mod jsr_rts_integration_tests {
   use super::*;
-  use crate::cpu::{CPU, opcode::opcode_table::AddressingMode};
+  use crate::{
+    bus::memory::Memory,
+    cpu::{CPU, opcode::opcode_table::AddressingMode},
+  };
 
   #[test]
   fn test_jsr_rts_round_trip() {
     let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
+    cpu.pc = 0x0600;
     cpu.stack = 0xFF;
-    cpu.mem_write_u16(0x8000, 0x3000); // Subroutine address
+    cpu.mem_write_u16(0x0600, 0x3000); // Subroutine address
 
     // Call subroutine
     jsr(&mut cpu, AddressingMode::Absolute);
@@ -460,38 +472,38 @@ mod jsr_rts_integration_tests {
     // Return from subroutine
     rts(&mut cpu, AddressingMode::NoneAddressing);
 
-    // Should return to the instruction after the JSR (0x8002)
-    assert_eq!(cpu.pc, 0x8002); // 0x8001 + 1
+    // Should return to the instruction after the JSR (0x0602)
+    assert_eq!(cpu.pc, 0x0602); // 0x0601 + 1
     assert_eq!(cpu.stack, 0xFF);
   }
 
   #[test]
   fn test_multiple_jsr_rts_calls() {
     let mut cpu = CPU::new();
-    cpu.pc = 0x8000;
+    cpu.pc = 0x0600;
     cpu.stack = 0xFF;
 
     // First JSR
-    cpu.mem_write_u16(0x8000, 0x3000);
+    cpu.mem_write_u16(0x0600, 0x0300);
     jsr(&mut cpu, AddressingMode::Absolute);
-    assert_eq!(cpu.pc, 0x3000);
+    assert_eq!(cpu.pc, 0x0300);
     assert_eq!(cpu.stack, 0xFD);
 
     // Second JSR (nested)
-    cpu.pc = 0x3000;
-    cpu.mem_write_u16(0x3000, 0x4000);
+    cpu.pc = 0x0300;
+    cpu.mem_write_u16(0x0300, 0x0400);
     jsr(&mut cpu, AddressingMode::Absolute);
-    assert_eq!(cpu.pc, 0x4000);
+    assert_eq!(cpu.pc, 0x0400);
     assert_eq!(cpu.stack, 0xFB);
 
     // First RTS (return from nested subroutine)
     rts(&mut cpu, AddressingMode::NoneAddressing);
-    assert_eq!(cpu.pc, 0x3002); // Return to first subroutine
+    assert_eq!(cpu.pc, 0x0302); // Return to first subroutine
     assert_eq!(cpu.stack, 0xFD);
 
     // Second RTS (return from first subroutine)
     rts(&mut cpu, AddressingMode::NoneAddressing);
-    assert_eq!(cpu.pc, 0x8002); // Return to main program
+    assert_eq!(cpu.pc, 0x0602); // Return to main program
     assert_eq!(cpu.stack, 0xFF);
   }
 
@@ -503,9 +515,9 @@ mod jsr_rts_integration_tests {
     cpu.reg_x = 0xBB;
     cpu.reg_y = 0xCC;
     cpu.status = 0b1100_0011;
-    cpu.pc = 0x8000;
+    cpu.pc = 0x0600;
     cpu.stack = 0xFF;
-    cpu.mem_write_u16(0x8000, 0x2000);
+    cpu.mem_write_u16(0x0600, 0x2000);
 
     // Save initial state
     let initial_a = cpu.reg_a;
@@ -521,7 +533,7 @@ mod jsr_rts_integration_tests {
     assert_eq!(cpu.reg_x, initial_x);
     assert_eq!(cpu.reg_y, initial_y);
     assert_eq!(cpu.status, initial_status);
-    assert_eq!(cpu.pc, 0x8002);
+    assert_eq!(cpu.pc, 0x0602);
     assert_eq!(cpu.stack, 0xFF);
   }
 
@@ -531,7 +543,7 @@ mod jsr_rts_integration_tests {
     cpu.stack = 0xFF;
 
     // Simulate deep nesting (4 levels)
-    let addresses = [0x1000, 0x2000, 0x3000, 0x4000, 0x5000];
+    let addresses = [0x0100, 0x0200, 0x0300, 0x0400, 0x0500];
 
     // Call 4 nested subroutines
     for i in 0..4 {
@@ -541,7 +553,7 @@ mod jsr_rts_integration_tests {
     }
 
     // Should be 4 levels deep
-    assert_eq!(cpu.pc, 0x5000);
+    assert_eq!(cpu.pc, 0x0500);
     assert_eq!(cpu.stack, 0xF7); // 0xFF - (4 * 2)
 
     // Return from all 4 levels
@@ -559,15 +571,15 @@ mod jsr_rts_integration_tests {
     let mut cpu = CPU::new();
 
     // Test near stack boundary
-    cpu.pc = 0x8000;
+    cpu.pc = 0x0600;
     cpu.stack = 0x01; // Very close to stack underflow
-    cpu.mem_write_u16(0x8000, 0x3000);
+    cpu.mem_write_u16(0x0600, 0x3000);
 
     jsr(&mut cpu, AddressingMode::Absolute);
     assert_eq!(cpu.stack, 0xFF); // Should wrap around
 
     rts(&mut cpu, AddressingMode::NoneAddressing);
     assert_eq!(cpu.stack, 0x01); // Should wrap back
-    assert_eq!(cpu.pc, 0x8002);
+    assert_eq!(cpu.pc, 0x0602);
   }
 }
