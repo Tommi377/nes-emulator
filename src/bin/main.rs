@@ -1,7 +1,4 @@
-use crate::cpu::CPU;
-
-mod cpu;
-mod utils;
+use nes_emulator::cpu::CPU;
 
 fn main() {
   let mut cpu = CPU::new();
