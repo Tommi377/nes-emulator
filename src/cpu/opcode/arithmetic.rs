@@ -506,19 +506,19 @@ mod cmp_tests {
 }
 
 #[cfg(test)]
-mod cmx_tests {
+mod cpx_tests {
   use super::*;
   use crate::cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode};
 
   #[test]
-  fn test_cmx_equal_values() {
+  fn test_cpx_equal_values() {
     let mut cpu = CPU::new();
     cpu.reg_x = 0x50;
     cpu.mem_write_u8(0x10, 0x50);
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
 
-    cmx(&mut cpu, AddressingMode::ZeroPage);
+    cpx(&mut cpu, AddressingMode::ZeroPage);
 
     assert_eq!(cpu.reg_x, 0x50); // Register should not change
     assert_ne!(cpu.status & StatusFlag::Carry as u8, 0); // Carry set (reg_x >= value)
@@ -527,14 +527,14 @@ mod cmx_tests {
   }
 
   #[test]
-  fn test_cmx_reg_x_greater() {
+  fn test_cpx_reg_x_greater() {
     let mut cpu = CPU::new();
     cpu.reg_x = 0x80;
     cpu.mem_write_u8(0x10, 0x30);
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
 
-    cmx(&mut cpu, AddressingMode::ZeroPage);
+    cpx(&mut cpu, AddressingMode::ZeroPage);
 
     assert_eq!(cpu.reg_x, 0x80); // Register should not change
     assert_ne!(cpu.status & StatusFlag::Carry as u8, 0); // Carry set (reg_x >= value)
@@ -543,14 +543,14 @@ mod cmx_tests {
   }
 
   #[test]
-  fn test_cmx_reg_x_less() {
+  fn test_cpx_reg_x_less() {
     let mut cpu = CPU::new();
     cpu.reg_x = 0x30;
     cpu.mem_write_u8(0x10, 0x80);
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
 
-    cmx(&mut cpu, AddressingMode::ZeroPage);
+    cpx(&mut cpu, AddressingMode::ZeroPage);
 
     assert_eq!(cpu.reg_x, 0x30); // Register should not change
     assert_eq!(cpu.status & StatusFlag::Carry as u8, 0); // Carry clear (reg_x < value)
@@ -559,7 +559,7 @@ mod cmx_tests {
   }
 
   #[test]
-  fn test_cmx_boundary_cases() {
+  fn test_cpx_boundary_cases() {
     let mut cpu = CPU::new();
 
     // Test comparing 0x00 with 0x00
@@ -568,7 +568,7 @@ mod cmx_tests {
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
 
-    cmx(&mut cpu, AddressingMode::ZeroPage);
+    cpx(&mut cpu, AddressingMode::ZeroPage);
 
     assert_ne!(cpu.status & StatusFlag::Carry as u8, 0); // Carry set
     assert_ne!(cpu.status & StatusFlag::Zero as u8, 0); // Zero set
@@ -580,7 +580,7 @@ mod cmx_tests {
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
 
-    cmx(&mut cpu, AddressingMode::ZeroPage);
+    cpx(&mut cpu, AddressingMode::ZeroPage);
 
     assert_ne!(cpu.status & StatusFlag::Carry as u8, 0); // Carry set
     assert_ne!(cpu.status & StatusFlag::Zero as u8, 0); // Zero set
@@ -588,14 +588,14 @@ mod cmx_tests {
   }
 
   #[test]
-  fn test_cmx_wrap_around() {
+  fn test_cpx_wrap_around() {
     let mut cpu = CPU::new();
     cpu.reg_x = 0x00;
     cpu.mem_write_u8(0x10, 0x01);
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
 
-    cmx(&mut cpu, AddressingMode::ZeroPage);
+    cpx(&mut cpu, AddressingMode::ZeroPage);
 
     assert_eq!(cpu.reg_x, 0x00); // Register should not change
     assert_eq!(cpu.status & StatusFlag::Carry as u8, 0); // Carry clear (0 < 1)
@@ -604,13 +604,13 @@ mod cmx_tests {
   }
 
   #[test]
-  fn test_cmx_immediate_mode() {
+  fn test_cpx_immediate_mode() {
     let mut cpu = CPU::new();
     cpu.reg_x = 0x42;
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x42);
 
-    cmx(&mut cpu, AddressingMode::Immediate);
+    cpx(&mut cpu, AddressingMode::Immediate);
 
     assert_eq!(cpu.reg_x, 0x42); // Register should not change
     assert_ne!(cpu.status & StatusFlag::Carry as u8, 0); // Carry set
@@ -619,7 +619,7 @@ mod cmx_tests {
   }
 
   #[test]
-  fn test_cmx_different_from_reg_a() {
+  fn test_cpx_different_from_reg_a() {
     let mut cpu = CPU::new();
     cpu.reg_a = 0x10; // Different from reg_x
     cpu.reg_x = 0x20;
@@ -627,7 +627,7 @@ mod cmx_tests {
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
 
-    cmx(&mut cpu, AddressingMode::ZeroPage);
+    cpx(&mut cpu, AddressingMode::ZeroPage);
 
     assert_eq!(cpu.reg_a, 0x10); // reg_a should not change
     assert_eq!(cpu.reg_x, 0x20); // reg_x should not change
@@ -638,19 +638,19 @@ mod cmx_tests {
 }
 
 #[cfg(test)]
-mod cmy_tests {
+mod cpy_tests {
   use super::*;
   use crate::cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode};
 
   #[test]
-  fn test_cmy_equal_values() {
+  fn test_cpy_equal_values() {
     let mut cpu = CPU::new();
     cpu.reg_y = 0x50;
     cpu.mem_write_u8(0x10, 0x50);
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
 
-    cmy(&mut cpu, AddressingMode::ZeroPage);
+    cpy(&mut cpu, AddressingMode::ZeroPage);
 
     assert_eq!(cpu.reg_y, 0x50); // Register should not change
     assert_ne!(cpu.status & StatusFlag::Carry as u8, 0); // Carry set (reg_y >= value)
@@ -659,14 +659,14 @@ mod cmy_tests {
   }
 
   #[test]
-  fn test_cmy_reg_y_greater() {
+  fn test_cpy_reg_y_greater() {
     let mut cpu = CPU::new();
     cpu.reg_y = 0x80;
     cpu.mem_write_u8(0x10, 0x30);
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
 
-    cmy(&mut cpu, AddressingMode::ZeroPage);
+    cpy(&mut cpu, AddressingMode::ZeroPage);
 
     assert_eq!(cpu.reg_y, 0x80); // Register should not change
     assert_ne!(cpu.status & StatusFlag::Carry as u8, 0); // Carry set (reg_y >= value)
@@ -675,14 +675,14 @@ mod cmy_tests {
   }
 
   #[test]
-  fn test_cmy_reg_y_less() {
+  fn test_cpy_reg_y_less() {
     let mut cpu = CPU::new();
     cpu.reg_y = 0x30;
     cpu.mem_write_u8(0x10, 0x80);
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
 
-    cmy(&mut cpu, AddressingMode::ZeroPage);
+    cpy(&mut cpu, AddressingMode::ZeroPage);
 
     assert_eq!(cpu.reg_y, 0x30); // Register should not change
     assert_eq!(cpu.status & StatusFlag::Carry as u8, 0); // Carry clear (reg_y < value)
@@ -691,7 +691,7 @@ mod cmy_tests {
   }
 
   #[test]
-  fn test_cmy_boundary_cases() {
+  fn test_cpy_boundary_cases() {
     let mut cpu = CPU::new();
 
     // Test comparing 0x00 with 0x00
@@ -700,7 +700,7 @@ mod cmy_tests {
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
 
-    cmy(&mut cpu, AddressingMode::ZeroPage);
+    cpy(&mut cpu, AddressingMode::ZeroPage);
 
     assert_ne!(cpu.status & StatusFlag::Carry as u8, 0); // Carry set
     assert_ne!(cpu.status & StatusFlag::Zero as u8, 0); // Zero set
@@ -712,7 +712,7 @@ mod cmy_tests {
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
 
-    cmy(&mut cpu, AddressingMode::ZeroPage);
+    cpy(&mut cpu, AddressingMode::ZeroPage);
 
     assert_ne!(cpu.status & StatusFlag::Carry as u8, 0); // Carry set
     assert_ne!(cpu.status & StatusFlag::Zero as u8, 0); // Zero set
@@ -720,14 +720,14 @@ mod cmy_tests {
   }
 
   #[test]
-  fn test_cmy_wrap_around() {
+  fn test_cpy_wrap_around() {
     let mut cpu = CPU::new();
     cpu.reg_y = 0x00;
     cpu.mem_write_u8(0x10, 0x01);
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
 
-    cmy(&mut cpu, AddressingMode::ZeroPage);
+    cpy(&mut cpu, AddressingMode::ZeroPage);
 
     assert_eq!(cpu.reg_y, 0x00); // Register should not change
     assert_eq!(cpu.status & StatusFlag::Carry as u8, 0); // Carry clear (0 < 1)
@@ -736,13 +736,13 @@ mod cmy_tests {
   }
 
   #[test]
-  fn test_cmy_immediate_mode() {
+  fn test_cpy_immediate_mode() {
     let mut cpu = CPU::new();
     cpu.reg_y = 0x42;
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x42);
 
-    cmy(&mut cpu, AddressingMode::Immediate);
+    cpy(&mut cpu, AddressingMode::Immediate);
 
     assert_eq!(cpu.reg_y, 0x42); // Register should not change
     assert_ne!(cpu.status & StatusFlag::Carry as u8, 0); // Carry set
@@ -751,7 +751,7 @@ mod cmy_tests {
   }
 
   #[test]
-  fn test_cmy_different_from_other_regs() {
+  fn test_cpy_different_from_other_regs() {
     let mut cpu = CPU::new();
     cpu.reg_a = 0x10; // Different from reg_y
     cpu.reg_x = 0x15; // Different from reg_y
@@ -760,7 +760,7 @@ mod cmy_tests {
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
 
-    cmy(&mut cpu, AddressingMode::ZeroPage);
+    cpy(&mut cpu, AddressingMode::ZeroPage);
 
     assert_eq!(cpu.reg_a, 0x10); // reg_a should not change
     assert_eq!(cpu.reg_x, 0x15); // reg_x should not change
@@ -771,7 +771,7 @@ mod cmy_tests {
   }
 
   #[test]
-  fn test_cmy_extreme_values() {
+  fn test_cpy_extreme_values() {
     let mut cpu = CPU::new();
 
     // Test 0xFF compared to 0x00 (maximum vs minimum)
@@ -780,7 +780,7 @@ mod cmy_tests {
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
 
-    cmy(&mut cpu, AddressingMode::ZeroPage);
+    cpy(&mut cpu, AddressingMode::ZeroPage);
 
     assert_eq!(cpu.reg_y, 0xFF); // Register should not change
     assert_ne!(cpu.status & StatusFlag::Carry as u8, 0); // Carry set (0xFF >= 0x00)
@@ -793,7 +793,7 @@ mod cmy_tests {
     cpu.pc = 0x8000;
     cpu.mem_write_u8(0x8000, 0x10);
 
-    cmy(&mut cpu, AddressingMode::ZeroPage);
+    cpy(&mut cpu, AddressingMode::ZeroPage);
 
     assert_eq!(cpu.reg_y, 0x00); // Register should not change
     assert_eq!(cpu.status & StatusFlag::Carry as u8, 0); // Carry clear (0x00 < 0xFF)

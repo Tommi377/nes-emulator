@@ -5,6 +5,7 @@ use crate::cpu::{
 
 pub mod arithmetic;
 pub mod increment_decrements;
+pub mod jumps;
 pub mod load_store;
 pub mod logical;
 pub mod opcode_table;

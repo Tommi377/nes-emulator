@@ -12,7 +12,7 @@ pub struct CPU {
   pub reg_a: u8,
   pub reg_x: u8,
   pub reg_y: u8,
-  pub memory: [u8; 0xFFFF],
+  pub memory: [u8; 0xFFFF + 1],
 }
 
 impl CPU {
@@ -24,7 +24,7 @@ impl CPU {
       reg_x: 0,
       reg_y: 0,
       stack: 0xFF,
-      memory: [0; 0xFFFF],
+      memory: [0; 0xFFFF + 1],
     }
   }
   pub fn load_and_run(&mut self, program: Vec<u8>) {
@@ -66,6 +66,12 @@ impl CPU {
       AddressingMode::Absolute => self.mem_read_pc_u16(),
       AddressingMode::Absolute_X => self.mem_read_pc_u16().wrapping_add(self.reg_x as u16),
       AddressingMode::Absolute_Y => self.mem_read_pc_u16().wrapping_add(self.reg_y as u16),
+      AddressingMode::Indirect => {
+        let ptr = self.mem_read_pc_u16();
+        let lo = self.mem_read_u8(ptr) as u16;
+        let hi = self.mem_read_u8(ptr & 0xFF00 | ((ptr as u8).wrapping_add(1) as u16)) as u16;
+        hi << 8 | lo
+      }
       AddressingMode::Indirect_X => {
         let ptr = self.mem_read_pc_u8().wrapping_add(self.reg_x);
         let lo = self.mem_read_u8(ptr as u16) as u16;
