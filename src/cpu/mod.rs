@@ -69,7 +69,7 @@ impl CPU {
       AddressingMode::Indirect => {
         let ptr = self.mem_read_pc_u16();
         let lo = self.mem_read_u8(ptr) as u16;
-        let hi = self.mem_read_u8(ptr & 0xFF00 | ((ptr as u8).wrapping_add(1) as u16)) as u16;
+        let hi = self.mem_read_u8(ptr & 0xFF00 | ((ptr as u8).wrapping_add(1) as u16)) as u16; // Replicate the page boundary bug in the original 6502
         hi << 8 | lo
       }
       AddressingMode::Indirect_X => {
@@ -99,6 +99,16 @@ impl CPU {
 
   fn get_stack_address(&self) -> u16 {
     0x0100 | self.stack as u16
+  }
+
+  fn stack_push_value(&mut self, value: u8) {
+    self.mem_write_u8(self.get_stack_address(), value);
+    self.stack = self.stack.wrapping_sub(1);
+  }
+
+  fn stack_pull_value(&mut self) -> u8 {
+    self.stack = self.stack.wrapping_add(1);
+    self.mem_read_u8(self.get_stack_address())
   }
 
   fn get_flag(&self, flag: StatusFlag) -> bool {
@@ -139,7 +149,7 @@ impl CPU {
   }
 
   fn mem_write_u16(&mut self, addr: u16, data: u16) {
-    let lo = (data & 0b1111_1111) as u8;
+    let lo = data as u8;
     let hi = (data >> 8) as u8;
     self.mem_write_u8(addr, lo);
     self.mem_write_u8(addr + 1, hi);
