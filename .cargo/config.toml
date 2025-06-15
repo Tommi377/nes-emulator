@@ -1,0 +1,13 @@
+[target.aarch64-apple-darwin]
+rustflags = [
+  "-L", "/opt/homebrew/opt/sdl2/lib",
+  "-L", "/opt/homebrew/lib",
+  "-L", "/usr/local/lib",
+]
+
+[target.x86_64-apple-darwin]
+rustflags = [
+  "-L", "/opt/homebrew/opt/sdl2/lib",
+  "-L", "/opt/homebrew/lib",
+  "-L", "/usr/local/lib",
+]

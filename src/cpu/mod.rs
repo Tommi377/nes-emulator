@@ -34,8 +34,13 @@ impl CPU {
   }
 
   pub fn load(&mut self, program: Vec<u8>) {
-    self.memory[0x8000..(0x8000 + program.len())].copy_from_slice(&program);
-    self.mem_write_u16(0xFFFC, 0x8000);
+    self.load_at(program, 0x8000);
+  }
+
+  pub fn load_at(&mut self, program: Vec<u8>, start_address: usize) {
+    self.memory[start_address..(start_address + program.len())].copy_from_slice(&program);
+    self.mem_write_u16(0xFFFC, start_address as u16);
+    self.reset();
   }
 
   pub fn reset(&mut self) {
@@ -48,10 +53,51 @@ impl CPU {
   }
 
   pub fn run(&mut self) {
+    self.run_with_callback(|_| {});
+  }
+
+  pub fn run_with_callback<F>(&mut self, mut callback: F)
+  where
+    F: FnMut(&mut CPU),
+  {
     while (self.status & StatusFlag::Break as u8) == 0 {
+      callback(self);
       let opcode: OP = self.mem_read_pc_u8().into();
       opcode.execute(self);
     }
+  }
+
+  pub fn mem_read_u8(&self, addr: u16) -> u8 {
+    self.memory[addr as usize]
+  }
+
+  pub fn mem_write_u8(&mut self, addr: u16, data: u8) {
+    self.memory[addr as usize] = data;
+  }
+
+  pub fn mem_read_u16(&self, addr: u16) -> u16 {
+    let lo = self.mem_read_u8(addr) as u16;
+    let hi = self.mem_read_u8(addr + 1) as u16;
+    (hi << 8) | lo
+  }
+
+  pub fn mem_write_u16(&mut self, addr: u16, data: u16) {
+    let lo = data as u8;
+    let hi = (data >> 8) as u8;
+    self.mem_write_u8(addr, lo);
+    self.mem_write_u8(addr + 1, hi);
+  }
+
+  fn mem_read_pc_u8(&mut self) -> u8 {
+    let value = self.mem_read_u8(self.pc);
+    self.pc += 1;
+    value
+  }
+
+  fn mem_read_pc_u16(&mut self) -> u16 {
+    let value = self.mem_read_u16(self.pc);
+    self.pc += 2;
+    value
   }
 
   fn get_address(&mut self, addressing_mode: &AddressingMode) -> u16 {
@@ -132,39 +178,6 @@ impl CPU {
     if value {
       self.status |= flag as u8;
     }
-  }
-
-  fn mem_read_u8(&self, addr: u16) -> u8 {
-    self.memory[addr as usize]
-  }
-
-  fn mem_read_pc_u8(&mut self) -> u8 {
-    let value = self.mem_read_u8(self.pc);
-    self.pc += 1;
-    value
-  }
-
-  fn mem_write_u8(&mut self, addr: u16, data: u8) {
-    self.memory[addr as usize] = data;
-  }
-
-  fn mem_read_u16(&self, addr: u16) -> u16 {
-    let lo = self.mem_read_u8(addr) as u16;
-    let hi = self.mem_read_u8(addr + 1) as u16;
-    (hi << 8) | lo
-  }
-
-  fn mem_read_pc_u16(&mut self) -> u16 {
-    let value = self.mem_read_u16(self.pc);
-    self.pc += 2;
-    value
-  }
-
-  fn mem_write_u16(&mut self, addr: u16, data: u16) {
-    let lo = data as u8;
-    let hi = (data >> 8) as u8;
-    self.mem_write_u8(addr, lo);
-    self.mem_write_u8(addr + 1, hi);
   }
 
   fn branch(&mut self, condition: bool) {

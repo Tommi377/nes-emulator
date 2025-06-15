@@ -4,4 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-num_enum = "0.7.3"
+rand = "0.9.1"
+sdl2 = "0.37.0"
+
+[[bin]]
+name = "cpu-test-snake"
