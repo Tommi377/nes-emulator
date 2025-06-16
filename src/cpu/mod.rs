@@ -2,7 +2,7 @@ pub mod opcode;
 
 use crate::{
   cpu::opcode::{OP, opcode_table::AddressingMode},
-  mem::{Memory, bus::Bus},
+  mem::{Memory, bus::Bus, rom::Rom},
   utils::set_bit,
 };
 
@@ -28,14 +28,15 @@ impl CPU {
       bus: Bus::new(),
     }
   }
-  pub fn load_and_run(&mut self, program: Vec<u8>) {
-    self.load(program);
+  pub fn load_and_run(&mut self, ram: Vec<u8>) {
+    self.load(ram);
     self.reset();
     self.run();
   }
 
-  pub fn load(&mut self, program: Vec<u8>) {
-    self.load_at(program, 0x0000);
+  pub fn load(&mut self, ram: Vec<u8>) {
+    self.insert_rom(Rom::from_pc(0x0000));
+    self.load_at(ram, 0x0000);
   }
 
   pub fn load_at(&mut self, program: Vec<u8>, start_address: usize) {
@@ -47,13 +48,17 @@ impl CPU {
     self.reset();
   }
 
+  pub fn insert_rom(&mut self, rom: Rom) {
+    self.bus.insert_rom(rom);
+  }
+
   pub fn reset(&mut self) {
     self.reg_a = 0;
     self.reg_x = 0;
     self.reg_y = 0;
     self.status = 0;
 
-    // self.pc = self.mem_read_u16(0xFFFC);
+    self.pc = self.mem_read_u16(0xFFFC);
   }
 
   pub fn run(&mut self) {

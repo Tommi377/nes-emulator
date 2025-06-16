@@ -26,7 +26,7 @@ impl Rom {
     let control_byte_1 = raw[6];
     let control_byte_2 = raw[7];
 
-    if control_byte_1 & 0b0000_1111 != 0 {
+    if control_byte_1 & 0b0000_1100 != 0 {
       return Err("Only iNES 1.0 file format is supported".to_string());
     }
 
@@ -57,11 +57,27 @@ impl Rom {
       screen_mirroring: screen_mirroring,
     })
   }
-}
 
-#[cfg(test)]
-mod rom_tests {
-  use super::*;
+  pub fn from_pc(pc: u16) -> Rom {
+    let mut prg_rom = vec![0; 2 * PRG_ROM_PAGE_SIZE];
+    prg_rom[0x7FFC] = (pc & 0xFF) as u8; // Store low byte of PC
+    prg_rom[0x7FFD] = (pc >> 8) as u8; // Store high byte of PC
+    Rom {
+      prg_rom: prg_rom, // Default PRG-ROM
+      chr_rom: vec![],
+      mapper: 0,
+      screen_mirroring: Mirroring::Horizontal,
+    }
+  }
+
+  pub fn from_prg(prg_rom: &[u8]) -> Rom {
+    Rom {
+      prg_rom: prg_rom.to_vec(),
+      chr_rom: vec![0; CHR_ROM_PAGE_SIZE], // Default CHR-ROM
+      mapper: 0,
+      screen_mirroring: Mirroring::Horizontal,
+    }
+  }
 
   // Helper function to create a minimal valid iNES header
   fn create_ines_header(
@@ -80,7 +96,7 @@ mod rom_tests {
   }
 
   // Helper function to create test ROM data
-  fn create_test_rom_data(
+  pub fn create_rom_data(
     prg_rom_pages: u8,
     chr_rom_pages: u8,
     control_byte_1: u8,
@@ -88,7 +104,7 @@ mod rom_tests {
     with_trainer: bool,
   ) -> Vec<u8> {
     let mut rom_data =
-      create_ines_header(prg_rom_pages, chr_rom_pages, control_byte_1, control_byte_2);
+      Self::create_ines_header(prg_rom_pages, chr_rom_pages, control_byte_1, control_byte_2);
 
     // Add trainer if needed
     if with_trainer {
@@ -105,10 +121,15 @@ mod rom_tests {
 
     rom_data
   }
+}
+
+#[cfg(test)]
+mod rom_tests {
+  use super::*;
 
   #[test]
   fn test_valid_rom_creation() {
-    let rom_data = create_test_rom_data(2, 1, 0x00, 0x00, false);
+    let rom_data = Rom::create_rom_data(2, 1, 0x00, 0x00, false);
     let rom = Rom::new(&rom_data).unwrap();
 
     assert_eq!(rom.prg_rom.len(), 2 * PRG_ROM_PAGE_SIZE);
@@ -124,7 +145,7 @@ mod rom_tests {
 
   #[test]
   fn test_invalid_nes_tag() {
-    let mut rom_data = create_test_rom_data(1, 1, 0x00, 0x00, false);
+    let mut rom_data = Rom::create_rom_data(1, 1, 0x00, 0x00, false);
     rom_data[0] = 0x00; // Corrupt the NES tag
 
     let result = Rom::new(&rom_data);
@@ -134,7 +155,7 @@ mod rom_tests {
 
   #[test]
   fn test_unsupported_ines_version() {
-    let rom_data = create_test_rom_data(1, 1, 0x01, 0x00, false); // Non-zero in lower nibble
+    let rom_data = Rom::create_rom_data(1, 1, 0x04, 0x00, false); // Non-zero in lower nibble
 
     let result = Rom::new(&rom_data);
     assert!(result.is_err());
@@ -146,21 +167,21 @@ mod rom_tests {
 
   #[test]
   fn test_horizontal_mirroring() {
-    let rom_data = create_test_rom_data(1, 1, 0x00, 0b0000_0000, false);
+    let rom_data = Rom::create_rom_data(1, 1, 0x00, 0b0000_0000, false);
     let rom = Rom::new(&rom_data).unwrap();
     assert_eq!(rom.screen_mirroring, Mirroring::Horizontal);
   }
 
   #[test]
   fn test_vertical_mirroring() {
-    let rom_data = create_test_rom_data(1, 1, 0x00, 0b0000_0001, false);
+    let rom_data = Rom::create_rom_data(1, 1, 0x00, 0b0000_0001, false);
     let rom = Rom::new(&rom_data).unwrap();
     assert_eq!(rom.screen_mirroring, Mirroring::Vertical);
   }
 
   #[test]
   fn test_four_screen_mirroring() {
-    let rom_data = create_test_rom_data(1, 1, 0x00, 0b0000_1000, false);
+    let rom_data = Rom::create_rom_data(1, 1, 0x00, 0b0000_1000, false);
     let rom = Rom::new(&rom_data).unwrap();
     assert_eq!(rom.screen_mirroring, Mirroring::FourScreen);
   }
@@ -168,7 +189,7 @@ mod rom_tests {
   #[test]
   fn test_four_screen_overrides_vertical() {
     // When four-screen flag is set, it should override vertical mirroring
-    let rom_data = create_test_rom_data(1, 1, 0x00, 0b0000_1001, false);
+    let rom_data = Rom::create_rom_data(1, 1, 0x00, 0b0000_1001, false);
     let rom = Rom::new(&rom_data).unwrap();
     assert_eq!(rom.screen_mirroring, Mirroring::FourScreen);
   }
@@ -176,34 +197,34 @@ mod rom_tests {
   #[test]
   fn test_mapper_calculation() {
     // Test mapper 0 (lower nibble of control_byte_1 = 0, upper nibble of control_byte_2 = 0)
-    let rom_data = create_test_rom_data(1, 1, 0x00, 0x00, false);
+    let rom_data = Rom::create_rom_data(1, 1, 0x00, 0x00, false);
     let rom = Rom::new(&rom_data).unwrap();
     assert_eq!(rom.mapper, 0);
 
     // Test mapper 1 (lower nibble of control_byte_1 = 1, upper nibble of control_byte_2 = 0)
-    let rom_data = create_test_rom_data(1, 1, 0x10, 0x00, false);
+    let rom_data = Rom::create_rom_data(1, 1, 0x10, 0x00, false);
     let rom = Rom::new(&rom_data).unwrap();
     assert_eq!(rom.mapper, 1);
 
     // Test mapper 16 (lower nibble of control_byte_1 = 0, upper nibble of control_byte_2 = 1)
-    let rom_data = create_test_rom_data(1, 1, 0x00, 0x10, false);
+    let rom_data = Rom::create_rom_data(1, 1, 0x00, 0x10, false);
     let rom = Rom::new(&rom_data).unwrap();
     assert_eq!(rom.mapper, 16);
 
     // Test mapper 17 (lower nibble of control_byte_1 = 1, upper nibble of control_byte_2 = 1)
-    let rom_data = create_test_rom_data(1, 1, 0x10, 0x10, false);
+    let rom_data = Rom::create_rom_data(1, 1, 0x10, 0x10, false);
     let rom = Rom::new(&rom_data).unwrap();
     assert_eq!(rom.mapper, 17);
 
     // Test mapper 255 (all bits set)
-    let rom_data = create_test_rom_data(1, 1, 0xF0, 0xF0, false);
+    let rom_data = Rom::create_rom_data(1, 1, 0xF0, 0xF0, false);
     let rom = Rom::new(&rom_data).unwrap();
     assert_eq!(rom.mapper, 255);
   }
 
   #[test]
   fn test_rom_with_trainer() {
-    let rom_data = create_test_rom_data(1, 1, 0x00, 0b0000_0100, true);
+    let rom_data = Rom::create_rom_data(1, 1, 0x00, 0b0000_0100, true);
     let rom = Rom::new(&rom_data).unwrap();
 
     assert_eq!(rom.prg_rom.len(), PRG_ROM_PAGE_SIZE);
@@ -216,7 +237,7 @@ mod rom_tests {
 
   #[test]
   fn test_rom_without_trainer() {
-    let rom_data = create_test_rom_data(1, 1, 0x00, 0b0000_0000, false);
+    let rom_data = Rom::create_rom_data(1, 1, 0x00, 0b0000_0000, false);
     let rom = Rom::new(&rom_data).unwrap();
 
     assert_eq!(rom.prg_rom.len(), PRG_ROM_PAGE_SIZE);
@@ -225,7 +246,7 @@ mod rom_tests {
 
   #[test]
   fn test_multiple_prg_rom_pages() {
-    let rom_data = create_test_rom_data(4, 1, 0x00, 0x00, false);
+    let rom_data = Rom::create_rom_data(4, 1, 0x00, 0x00, false);
     let rom = Rom::new(&rom_data).unwrap();
 
     assert_eq!(rom.prg_rom.len(), 4 * PRG_ROM_PAGE_SIZE);
@@ -234,7 +255,7 @@ mod rom_tests {
 
   #[test]
   fn test_multiple_chr_rom_pages() {
-    let rom_data = create_test_rom_data(1, 3, 0x00, 0x00, false);
+    let rom_data = Rom::create_rom_data(1, 3, 0x00, 0x00, false);
     let rom = Rom::new(&rom_data).unwrap();
 
     assert_eq!(rom.prg_rom.len(), 1 * PRG_ROM_PAGE_SIZE);
