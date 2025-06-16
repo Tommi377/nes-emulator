@@ -1,6 +1,6 @@
 use crate::{
-  bus::memory::Memory,
   cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode},
+  mem::Memory,
 };
 
 pub(crate) fn and(cpu: &mut CPU, mode: AddressingMode) {

@@ -1,11 +1,9 @@
-use crate::bus::memory::Memory;
+use crate::mem::Memory;
 
 const RAM_START: u16 = 0x0000;
 const RAM_END: u16 = 0x1FFF;
 const PPU_START: u16 = 0x2000;
 const PPU_END: u16 = 0x3FFF;
-
-pub mod memory;
 
 pub struct Bus {
   cpu_ram: [u8; 2048],

@@ -1,4 +1,4 @@
-use nes_emulator::{bus::memory::Memory, cpu::CPU};
+use nes_emulator::{cpu::CPU, mem::Memory};
 use rand::Rng;
 use sdl2::{EventPump, event::Event, keyboard::Keycode, pixels::PixelFormatEnum};
 

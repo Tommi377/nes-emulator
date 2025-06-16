@@ -35,10 +35,8 @@ pub(crate) fn bvc(cpu: &mut CPU, _mode: AddressingMode) {
 #[cfg(test)]
 mod branch_tests {
   use super::*;
-  use crate::{
-    bus::memory::Memory,
-    cpu::{CPU, StatusFlag},
-  };
+  use crate::cpu::{CPU, StatusFlag};
+  use crate::mem::Memory;
 
   // Helper function to set up CPU with a given PC and status flags
   fn setup_cpu_with_flags(pc: u16, status: u8) -> CPU {

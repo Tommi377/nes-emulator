@@ -1,3 +1,6 @@
+pub mod bus;
+pub mod rom;
+
 pub trait Memory {
   fn mem_read_u8(&self, addr: u16) -> u8;
 

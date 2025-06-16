@@ -1,8 +1,8 @@
 pub mod opcode;
 
 use crate::{
-  bus::{Bus, memory::Memory},
   cpu::opcode::{OP, opcode_table::AddressingMode},
+  mem::{Memory, bus::Bus},
   utils::set_bit,
 };
 
