@@ -1,21 +1,34 @@
-use crate::mem::Memory;
+use crate::mem::{Memory, rom::Rom};
 
 const RAM_START: u16 = 0x0000;
 const RAM_END: u16 = 0x1FFF;
 const PPU_START: u16 = 0x2000;
 const PPU_END: u16 = 0x3FFF;
+const PRG_START: u16 = 0x8000;
+const END: u16 = 0xFFFF;
 
 pub struct Bus {
   cpu_ram: [u8; 2048],
-  pc: u16,
+  rom: Option<Rom>,
 }
 
 impl Bus {
   pub fn new() -> Self {
     Bus {
       cpu_ram: [0; 2048],
-      pc: 0,
+      rom: None,
     }
+  }
+
+  pub fn from_rom(rom: Rom) -> Self {
+    Bus {
+      cpu_ram: [0; 2048],
+      rom: Some(rom),
+    }
+  }
+
+  pub fn insert_rom(&mut self, rom: Rom) {
+    self.rom = Some(rom);
   }
 }
 
@@ -30,8 +43,7 @@ impl Memory for Bus {
         let _mirror_down_addr = addr & 0b00100000_00000111;
         todo!("PPU is not supported yet")
       }
-      0xFFFC => self.pc as u8,
-      0xFFFD => (self.pc >> 8) as u8,
+      PRG_START..=END => self.read_prg_rom(addr),
       _ => {
         println!("Ignoring mem access at {}", addr);
         0
@@ -49,10 +61,24 @@ impl Memory for Bus {
         let _mem_addr = addr & 0b00100000_00000111;
         todo!("PPU is not supported yet");
       }
-      0xFFFC => self.pc = u16::from_le_bytes([data, (self.pc >> 8) as u8]),
-      0xFFFD => self.pc = u16::from_le_bytes([self.pc as u8, data]),
-      _ => {
-        println!("Ignoring mem write-access at {}", addr);
+      PRG_START..=END => panic!("Attempt to write to Cartridge ROM space"),
+      _ => println!("Ignoring mem write-access at {}", addr),
+    }
+  }
+}
+
+impl Bus {
+  fn read_prg_rom(&self, mut addr: u16) -> u8 {
+    match &self.rom {
+      Some(rom) => {
+        addr -= 0x8000;
+        if rom.prg_rom.len() == 0x4000 && addr >= 0x4000 {
+          addr = addr % 0x4000;
+        }
+        rom.prg_rom[addr as usize]
+      }
+      None => {
+        panic!("Trying to read ROM without a cartridge")
       }
     }
   }

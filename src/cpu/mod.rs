@@ -42,7 +42,8 @@ impl CPU {
     for i in 0..(program.len() as u16) {
       self.mem_write_u8((start_address as u16) + i, program[i as usize]);
     }
-    self.mem_write_u16(0xFFFC, start_address as u16);
+    self.pc = start_address as u16; // TODO: Read PC from ROM
+    // self.mem_write_u16(0xFFFC, start_address as u16);
     self.reset();
   }
 
@@ -52,7 +53,7 @@ impl CPU {
     self.reg_y = 0;
     self.status = 0;
 
-    self.pc = self.mem_read_u16(0xFFFC);
+    // self.pc = self.mem_read_u16(0xFFFC);
   }
 
   pub fn run(&mut self) {
