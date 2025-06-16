@@ -8,9 +8,9 @@ rand = "0.9.1"
 sdl2 = { version = "0.37.0", optional = true }
 
 [[bin]]
-name = "rom-test-snake"
+name = "snake-binary"
 required-features = ["sdl2"]
 
 [[bin]]
-name = "cpu-test-snake"
+name = "snake-nes"
 required-features = ["sdl2"]
