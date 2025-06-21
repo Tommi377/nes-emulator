@@ -216,35 +216,55 @@ impl Debug for CPU {
           instructions[1],
           self.mem_read_u8(instructions[1] as u16)
         ),
-        AddressingMode::ZeroPage_X => format!(
-          "${:02X},X @ {:02X} = {:02X}",
-          instructions[1],
-          instructions[1].wrapping_add(self.reg_x),
-          self.mem_read_u8(instructions[1] as u16)
-        ),
-        AddressingMode::ZeroPage_Y => format!(
-          "${:02X},Y @ {:02X} = {:02X}",
-          instructions[1],
-          instructions[1].wrapping_add(self.reg_y),
-          self.mem_read_u8(instructions[1] as u16)
-        ),
-        AddressingMode::Absolute => format!(
-          "${:04X} = {:02X}",
-          u16::from_le_bytes([instructions[1], instructions[2]]),
-          self.mem_read_u8(instructions[1] as u16)
-        ),
-        AddressingMode::Absolute_X => format!(
-          "${:04X},X @ {:04X} = {:02X}",
-          u16::from_le_bytes([instructions[1], instructions[2]]),
-          u16::from_le_bytes([instructions[1], instructions[2]]).wrapping_add(self.reg_x as u16),
-          self.mem_read_u8(instructions[1] as u16)
-        ),
-        AddressingMode::Absolute_Y => format!(
-          "${:04X},Y @ {:04X} = {:02X}",
-          u16::from_le_bytes([instructions[1], instructions[2]]),
-          u16::from_le_bytes([instructions[1], instructions[2]]).wrapping_add(self.reg_y as u16),
-          self.mem_read_u8(instructions[1] as u16)
-        ),
+        AddressingMode::ZeroPage_X => {
+          let addr = instructions[1].wrapping_add(self.reg_x);
+          format!(
+            "${:02X},X @ {:02X} = {:02X}",
+            instructions[1],
+            addr,
+            self.mem_read_u8(addr as u16)
+          )
+        }
+        AddressingMode::ZeroPage_Y => {
+          let addr = instructions[1].wrapping_add(self.reg_y);
+          format!(
+            "${:02X},Y @ {:02X} = {:02X}",
+            instructions[1],
+            addr,
+            self.mem_read_u8(addr as u16)
+          )
+        }
+        AddressingMode::Absolute => {
+          if op.name == "JMP" || op.name == "JSR" {
+            format!(
+              "${:04X}",
+              u16::from_le_bytes([instructions[1], instructions[2]])
+            )
+          } else {
+            let addr = u16::from_le_bytes([instructions[1], instructions[2]]);
+            format!("${:04X} = {:02X}", addr, self.mem_read_u8(addr))
+          }
+        }
+        AddressingMode::Absolute_X => {
+          let addr = u16::from_le_bytes([instructions[1], instructions[2]]);
+          let addr_final = addr.wrapping_add(self.reg_x as u16);
+          format!(
+            "${:04X},X @ {:04X} = {:02X}",
+            addr,
+            addr_final,
+            self.mem_read_u8(addr_final)
+          )
+        }
+        AddressingMode::Absolute_Y => {
+          let addr = u16::from_le_bytes([instructions[1], instructions[2]]);
+          let addr_final = addr.wrapping_add(self.reg_y as u16);
+          format!(
+            "${:04X},Y @ {:04X} = {:02X}",
+            addr,
+            addr_final,
+            self.mem_read_u8(addr_final)
+          )
+        }
         AddressingMode::Indirect => {
           let ptr = u16::from_le_bytes([instructions[1], instructions[2]]);
           let lo = self.mem_read_u8(ptr) as u16;
@@ -256,30 +276,34 @@ impl Debug for CPU {
           let ptr = instructions[1].wrapping_add(self.reg_x);
           let lo = self.mem_read_u8(ptr as u16) as u16;
           let hi = self.mem_read_u8(ptr.wrapping_add(1) as u16) as u16;
-          let ptr_2 = hi << 8 | lo;
+          let ptr_final = hi << 8 | lo;
           format!(
             "(${:02X},X) @ {:02X} = {:04X} = {:02X}",
             instructions[1],
             ptr,
-            ptr_2,
-            self.mem_read_u8(ptr_2),
-          )
-        }
-        AddressingMode::Indirect_Y => {
-          let ptr = self.mem_read_u8(instructions[1] as u16);
-          let lo = self.mem_read_u8(ptr as u16) as u16;
-          let hi = self.mem_read_u8((ptr).wrapping_add(1) as u16) as u16;
-          let ptr_2 = hi << 8 | lo;
-          let ptr_final = ptr_2.wrapping_add(self.reg_y as u16);
-          format!(
-            "(${:02X}),Y = {:04X} @ {:04X} = {:02X}",
-            ptr,
-            ptr_2,
             ptr_final,
             self.mem_read_u8(ptr_final),
           )
         }
-        _ => format!("{}", op.code),
+        AddressingMode::Indirect_Y => {
+          let lo = self.mem_read_u8(instructions[1] as u16) as u16;
+          let hi = self.mem_read_u8(instructions[1].wrapping_add(1) as u16) as u16;
+          let ptr = hi << 8 | lo;
+          let ptr_final = ptr.wrapping_add(self.reg_y as u16);
+          format!(
+            "(${:02X}),Y = {:04X} @ {:04X} = {:02X}",
+            instructions[1],
+            ptr,
+            ptr_final,
+            self.mem_read_u8(ptr_final as u16),
+          )
+        }
+        AddressingMode::Relative => {
+          let jump_addr = self.pc.wrapping_add(instructions[1] as u16 + 2);
+          format!("${:04X}", jump_addr)
+        }
+        AddressingMode::Accumulator => "A".to_string(),
+        _ => "".to_string(),
       }
     );
 

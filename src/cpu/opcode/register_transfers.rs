@@ -22,7 +22,6 @@ pub(crate) fn txa(cpu: &mut CPU, _mode: AddressingMode) {
 
 pub(crate) fn txs(cpu: &mut CPU, _mode: AddressingMode) {
   cpu.stack = cpu.reg_x;
-  cpu.update_zero_and_negative_flags(cpu.stack);
 }
 
 pub(crate) fn tya(cpu: &mut CPU, _mode: AddressingMode) {
@@ -124,6 +123,22 @@ mod transfer_test {
     assert_eq!(cpu.stack, 0x05);
     assert!(cpu.status & 0b0000_0010 == 0b00);
     assert!(cpu.status & 0b1000_0000 == 0);
+  }
+
+  #[test]
+  fn test_0x9a_txs_status_unchanged() {
+    let mut cpu = CPU::new();
+
+    // Set some flags in the status register
+    cpu.status = 0b1100_0011; // Set negative, overflow, carry, and zero flags
+    cpu.reg_x = 0x42;
+
+    let original_status = cpu.status;
+
+    txs(&mut cpu, AddressingMode::NoneAddressing);
+
+    assert_eq!(cpu.stack, 0x42);
+    assert_eq!(cpu.status, original_status); // Status should be unchanged
   }
 
   #[test]
