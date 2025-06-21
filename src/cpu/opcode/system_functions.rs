@@ -7,7 +7,9 @@ pub(crate) fn brk(cpu: &mut CPU, _mode: AddressingMode) {
   cpu.status = set_bit(cpu.status, StatusFlag::Break as u8, true);
 }
 
-pub(crate) fn nop(_cpu: &mut CPU, _mode: AddressingMode) {}
+pub(crate) fn nop(cpu: &mut CPU, mode: AddressingMode) {
+  cpu.try_get_address(&mode);
+}
 
 pub(crate) fn rti(cpu: &mut CPU, _mode: AddressingMode) {
   let value = cpu.stack_pull_value_u8();
@@ -109,6 +111,125 @@ mod system_functions_tests {
       cpu.reg_a, cpu.reg_x, cpu.reg_y, cpu.pc, cpu.stack, cpu.status,
     );
     assert_eq!(initial_state, final_state);
+  }
+
+  #[test]
+  fn test_nop_zeropage_advances_pc() {
+    let mut cpu = CPU::new();
+    cpu.pc = 0x0600;
+    cpu.mem_write_u8(0x0600, 0x10); // ZeroPage address
+
+    let initial_pc = cpu.pc;
+    let initial_stack = cpu.stack;
+
+    nop(&mut cpu, AddressingMode::ZeroPage);
+
+    // PC should advance by 1 byte (ZeroPage uses 1 byte operand)
+    assert_eq!(cpu.pc, initial_pc + 1);
+    // Stack pointer should not change
+    assert_eq!(cpu.stack, initial_stack);
+  }
+
+  #[test]
+  fn test_nop_zeropage_x_advances_pc() {
+    let mut cpu = CPU::new();
+    cpu.pc = 0x0600;
+    cpu.reg_x = 0x05;
+    cpu.mem_write_u8(0x0600, 0x10); // ZeroPage address
+
+    let initial_pc = cpu.pc;
+    let initial_stack = cpu.stack;
+
+    nop(&mut cpu, AddressingMode::ZeroPage_X);
+
+    // PC should advance by 1 byte (ZeroPage_X uses 1 byte operand)
+    assert_eq!(cpu.pc, initial_pc + 1);
+    // Stack pointer should not change
+    assert_eq!(cpu.stack, initial_stack);
+  }
+
+  #[test]
+  fn test_nop_absolute_advances_pc() {
+    let mut cpu = CPU::new();
+    cpu.pc = 0x0600;
+    cpu.mem_write_u16(0x0600, 0x1234); // Absolute address
+
+    let initial_pc = cpu.pc;
+    let initial_stack = cpu.stack;
+
+    nop(&mut cpu, AddressingMode::Absolute);
+
+    // PC should advance by 2 bytes (Absolute uses 2 byte operand)
+    assert_eq!(cpu.pc, initial_pc + 2);
+    // Stack pointer should not change
+    assert_eq!(cpu.stack, initial_stack);
+  }
+
+  #[test]
+  fn test_nop_absolute_x_advances_pc() {
+    let mut cpu = CPU::new();
+    cpu.pc = 0x0600;
+    cpu.reg_x = 0x10;
+    cpu.mem_write_u16(0x0600, 0x1234); // Absolute address
+
+    let initial_pc = cpu.pc;
+    let initial_stack = cpu.stack;
+
+    nop(&mut cpu, AddressingMode::Absolute_X);
+
+    // PC should advance by 2 bytes (Absolute_X uses 2 byte operand)
+    assert_eq!(cpu.pc, initial_pc + 2);
+    // Stack pointer should not change
+    assert_eq!(cpu.stack, initial_stack);
+  }
+
+  #[test]
+  fn test_nop_addressing_modes_preserve_state() {
+    let mut cpu = CPU::new();
+
+    // Set up initial state
+    cpu.reg_a = 0x42;
+    cpu.reg_x = 0x55;
+    cpu.reg_y = 0x66;
+    cpu.status = 0b1010_1010;
+
+    // Test each addressing mode preserves all state except PC
+    let test_cases = [
+      (AddressingMode::ZeroPage, 1),
+      (AddressingMode::ZeroPage_X, 1),
+      (AddressingMode::Absolute, 2),
+      (AddressingMode::Absolute_X, 2),
+    ];
+
+    for (mode, expected_pc_advance) in test_cases.iter() {
+      // Reset to known state
+      cpu.pc = 0x0700;
+      cpu.mem_write_u16(0x0700, 0x1234); // Set up operand
+
+      let initial_a = cpu.reg_a;
+      let initial_x = cpu.reg_x;
+      let initial_y = cpu.reg_y;
+      let initial_status = cpu.status;
+      let initial_stack = cpu.stack;
+      let initial_pc = cpu.pc;
+
+      nop(&mut cpu, *mode);
+
+      // All registers and flags should be preserved
+      assert_eq!(cpu.reg_a, initial_a, "reg_a changed for {:?}", mode);
+      assert_eq!(cpu.reg_x, initial_x, "reg_x changed for {:?}", mode);
+      assert_eq!(cpu.reg_y, initial_y, "reg_y changed for {:?}", mode);
+      assert_eq!(cpu.status, initial_status, "status changed for {:?}", mode);
+      assert_eq!(cpu.stack, initial_stack, "stack changed for {:?}", mode);
+
+      // PC should advance by the expected amount
+      assert_eq!(
+        cpu.pc,
+        initial_pc + expected_pc_advance,
+        "PC advance incorrect for {:?}",
+        mode
+      );
+    }
   }
 
   #[test]

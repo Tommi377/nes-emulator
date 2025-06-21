@@ -129,6 +129,18 @@ impl CPU {
     }
   }
 
+  fn try_get_address(&mut self, mode: &AddressingMode) -> Option<u16> {
+    match mode {
+      AddressingMode::Immediate
+      | AddressingMode::Relative
+      | AddressingMode::NoneAddressing
+      | AddressingMode::Accumulator => {
+        return None;
+      }
+      _ => Some(self.get_address(mode)),
+    }
+  }
+
   fn get_address_and_value(&mut self, mode: &AddressingMode) -> (u16, u8) {
     let address = self.get_address(&mode);
     let value = self.mem_read_u8(address);

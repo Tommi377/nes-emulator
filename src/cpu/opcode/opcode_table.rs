@@ -207,6 +207,43 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0xEA] = Some(OP { code: 0xEA, name: "NOP", op: nop, mode: NoneAddressing,  bytes: 1, cycles: 2 });
   table[0x40] = Some(OP { code: 0x40, name: "RTI", op: rti, mode: NoneAddressing,  bytes: 1, cycles: 6 });
 
+  //////////////////////////////
+  //    Unofficial Opcodes    //
+  //////////////////////////////
+
+  // NOP - Unofficial
+  table[0x1A] = Some(OP { code: 0x1A, name: "NOP", op: nop, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0x3A] = Some(OP { code: 0x3A, name: "NOP", op: nop, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0x5A] = Some(OP { code: 0x5A, name: "NOP", op: nop, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0x7A] = Some(OP { code: 0x7A, name: "NOP", op: nop, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0xDA] = Some(OP { code: 0xDA, name: "NOP", op: nop, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+  table[0xFA] = Some(OP { code: 0xFA, name: "NOP", op: nop, mode: NoneAddressing,  bytes: 1, cycles: 2 });
+
+  // SKB - Unofficial
+  table[0x80] = Some(OP { code: 0x80, name: "SKB", op: nop, mode: Immediate,       bytes: 2, cycles: 2 });
+  table[0x82] = Some(OP { code: 0x82, name: "SKB", op: nop, mode: Immediate,       bytes: 2, cycles: 2 });
+  table[0x89] = Some(OP { code: 0x89, name: "SKB", op: nop, mode: Immediate,       bytes: 2, cycles: 2 });
+  table[0xC2] = Some(OP { code: 0xC2, name: "SKB", op: nop, mode: Immediate,       bytes: 2, cycles: 2 });
+  table[0xE2] = Some(OP { code: 0xE2, name: "SKB", op: nop, mode: Immediate,       bytes: 2, cycles: 2 });
+
+  // IGN - Unofficial
+  table[0x04] = Some(OP { code: 0x04, name: "IGN", op: nop, mode: ZeroPage,        bytes: 2, cycles: 3 });
+  table[0x44] = Some(OP { code: 0x44, name: "IGN", op: nop, mode: ZeroPage,        bytes: 2, cycles: 3 });
+  table[0x64] = Some(OP { code: 0x64, name: "IGN", op: nop, mode: ZeroPage,        bytes: 2, cycles: 3 });
+  table[0x14] = Some(OP { code: 0x14, name: "IGN", op: nop, mode: ZeroPage_X,      bytes: 2, cycles: 4 });
+  table[0x34] = Some(OP { code: 0x34, name: "IGN", op: nop, mode: ZeroPage_X,      bytes: 2, cycles: 4 });
+  table[0x54] = Some(OP { code: 0x54, name: "IGN", op: nop, mode: ZeroPage_X,      bytes: 2, cycles: 4 });
+  table[0x74] = Some(OP { code: 0x74, name: "IGN", op: nop, mode: ZeroPage_X,      bytes: 2, cycles: 4 });
+  table[0xD4] = Some(OP { code: 0xD4, name: "IGN", op: nop, mode: ZeroPage_X,      bytes: 2, cycles: 4 });
+  table[0xF4] = Some(OP { code: 0xF4, name: "IGN", op: nop, mode: ZeroPage_X,      bytes: 2, cycles: 4 });
+  table[0x0C] = Some(OP { code: 0x0C, name: "IGN", op: nop, mode: Absolute,        bytes: 3, cycles: 4 });
+  table[0x1C] = Some(OP { code: 0x1C, name: "IGN", op: nop, mode: Absolute_X,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
+  table[0x3C] = Some(OP { code: 0x3C, name: "IGN", op: nop, mode: Absolute_X,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
+  table[0x5C] = Some(OP { code: 0x5C, name: "IGN", op: nop, mode: Absolute_X,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
+  table[0x7C] = Some(OP { code: 0x7C, name: "IGN", op: nop, mode: Absolute_X,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
+  table[0xDC] = Some(OP { code: 0xDC, name: "IGN", op: nop, mode: Absolute_X,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
+  table[0xFC] = Some(OP { code: 0xFC, name: "IGN", op: nop, mode: Absolute_X,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
+
   table
 };
 
