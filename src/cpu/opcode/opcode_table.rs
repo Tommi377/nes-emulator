@@ -1,7 +1,7 @@
 use crate::cpu::opcode::{
-  OP, arithmetic::*, branches::*, increment_decrements::*, jumps::*, load_store::*, logical::*,
-  register_transfers::*, shifts::*, stack_operations::*, status_flag_changes::*,
-  system_functions::*,
+  OP, arithmetic::*, branches::*, combined_ops::*, increment_decrements::*, jumps::*,
+  load_store::*, logical::*, register_transfers::*, shifts::*, stack_operations::*,
+  status_flag_changes::*, system_functions::*,
 };
 
 // Instruction Set for the Obelisk 6502 CPU
@@ -243,6 +243,27 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0x7C] = Some(OP { code: 0x7C, name: "IGN", op: nop, mode: Absolute_X,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
   table[0xDC] = Some(OP { code: 0xDC, name: "IGN", op: nop, mode: Absolute_X,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
   table[0xFC] = Some(OP { code: 0xFC, name: "IGN", op: nop, mode: Absolute_X,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
+
+  // Combined Instructions
+  table[0x4B] = Some(OP { code: 0x4B, name: "ALR", op: alr, mode: Immediate,       bytes: 2, cycles: 2 });
+  table[0x0B] = Some(OP { code: 0x0B, name: "ANC", op: anc, mode: Immediate,       bytes: 2, cycles: 2 });
+  table[0x2B] = Some(OP { code: 0x2B, name: "ANC", op: anc, mode: Immediate,       bytes: 2, cycles: 2 });
+  table[0x6B] = Some(OP { code: 0x6B, name: "ARR", op: arr, mode: Immediate,       bytes: 2, cycles: 2 });
+  table[0xCB] = Some(OP { code: 0xCB, name: "AXS", op: axs, mode: Immediate,       bytes: 2, cycles: 2 });
+
+  // LAX
+  table[0xA7] = Some(OP { code: 0xA7, name: "LAX", op: lax, mode: ZeroPage,        bytes: 2, cycles: 3 });
+  table[0xB7] = Some(OP { code: 0xB7, name: "LAX", op: lax, mode: ZeroPage_Y,      bytes: 2, cycles: 4 });
+  table[0xAF] = Some(OP { code: 0xAF, name: "LAX", op: lax, mode: Absolute,        bytes: 3, cycles: 4 });
+  table[0xBF] = Some(OP { code: 0xBF, name: "LAX", op: lax, mode: Absolute_Y,      bytes: 3, cycles: 4 /* +1 if page crossed */ });
+  table[0xA3] = Some(OP { code: 0xA3, name: "LAX", op: lax, mode: Indirect_X,      bytes: 2, cycles: 6 });
+  table[0xB3] = Some(OP { code: 0xB3, name: "LAX", op: lax, mode: Indirect_Y,      bytes: 2, cycles: 5 /* +1 if page crossed */ });
+
+  // SAX
+  table[0x87] = Some(OP { code: 0x87, name: "SAX", op: sax, mode: ZeroPage,        bytes: 2, cycles: 3 });
+  table[0x97] = Some(OP { code: 0x97, name: "SAX", op: sax, mode: ZeroPage_Y,      bytes: 2, cycles: 4 });
+  table[0x8F] = Some(OP { code: 0x8F, name: "SAX", op: sax, mode: Absolute,        bytes: 3, cycles: 4 });
+  table[0x83] = Some(OP { code: 0x83, name: "SAX", op: sax, mode: Indirect_X,      bytes: 2, cycles: 6 });
 
   table
 };
