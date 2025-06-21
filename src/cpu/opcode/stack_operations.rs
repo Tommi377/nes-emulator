@@ -103,6 +103,7 @@ mod stack_operations_test {
   fn test_plp_pull_processor_status() {
     let mut cpu = CPU::new();
     cpu.stack = 0xFE;
+    cpu.status = 0;
     cpu.mem_write_u8(0x01FF, 0b0110_1001);
 
     plp(&mut cpu, AddressingMode::NoneAddressing);
@@ -117,6 +118,7 @@ mod stack_operations_test {
   fn test_plp_stack_wrapping() {
     let mut cpu = CPU::new();
     cpu.stack = 0xFF;
+    cpu.status = 0;
     cpu.mem_write_u8(0x0100, 0b1111_0000);
 
     plp(&mut cpu, AddressingMode::NoneAddressing);

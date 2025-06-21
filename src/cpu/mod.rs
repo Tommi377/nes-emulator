@@ -1,10 +1,15 @@
 pub mod opcode;
 
+use std::fmt::{Debug, Formatter};
+
 use crate::{
   cpu::opcode::{OP, opcode_table::AddressingMode},
   mem::{Memory, bus::Bus, rom::Rom},
   utils::set_bit,
 };
+
+const INIT_STACK_POINTER: u8 = 0xFF;
+const PC_START_ADDRESS: u16 = 0xFFFC;
 
 pub struct CPU {
   pub pc: u16,
@@ -20,11 +25,11 @@ impl CPU {
   pub fn new() -> Self {
     CPU {
       pc: 0,
-      status: 0,
+      status: 0b00100100,
       reg_a: 0,
       reg_x: 0,
       reg_y: 0,
-      stack: 0xFF,
+      stack: INIT_STACK_POINTER,
       bus: Bus::new(),
     }
   }
@@ -43,8 +48,6 @@ impl CPU {
     for i in 0..(program.len() as u16) {
       self.mem_write_u8((start_address as u16) + i, program[i as usize]);
     }
-    self.pc = start_address as u16; // TODO: Read PC from ROM
-    // self.mem_write_u16(0xFFFC, start_address as u16);
     self.reset();
   }
 
@@ -56,9 +59,10 @@ impl CPU {
     self.reg_a = 0;
     self.reg_x = 0;
     self.reg_y = 0;
-    self.status = 0;
+    self.status = 0b00100100;
+    self.stack = INIT_STACK_POINTER;
 
-    self.pc = self.mem_read_u16(0xFFFC);
+    self.pc = self.mem_read_u16(PC_START_ADDRESS);
   }
 
   pub fn run(&mut self) {
@@ -183,6 +187,113 @@ impl CPU {
       StatusFlag::Negative as u8,
       result & 0b1000_0000 != 0,
     );
+  }
+}
+
+impl Debug for CPU {
+  fn fmt(&self, f: &mut Formatter<'_>) -> ::core::fmt::Result {
+    let op: OP = self.mem_read_u8(self.pc).into();
+
+    let pc_str = format!("{:04X}", self.pc);
+
+    let instructions = (0..op.bytes)
+      .map(|i| self.mem_read_u8(self.pc.wrapping_add(i as u16)))
+      .collect::<Vec<u8>>();
+
+    let code_str = instructions
+      .iter()
+      .map(|byte| format!("{:02X}", byte))
+      .collect::<Vec<String>>()
+      .join(" ");
+
+    let ins_str = format!(
+      "{} {}",
+      op.name,
+      match op.mode {
+        AddressingMode::Immediate => format!("#${:02X}", instructions[1]),
+        AddressingMode::ZeroPage => format!(
+          "${:02X} = {:02X}",
+          instructions[1],
+          self.mem_read_u8(instructions[1] as u16)
+        ),
+        AddressingMode::ZeroPage_X => format!(
+          "${:02X},X @ {:02X} = {:02X}",
+          instructions[1],
+          instructions[1].wrapping_add(self.reg_x),
+          self.mem_read_u8(instructions[1] as u16)
+        ),
+        AddressingMode::ZeroPage_Y => format!(
+          "${:02X},Y @ {:02X} = {:02X}",
+          instructions[1],
+          instructions[1].wrapping_add(self.reg_y),
+          self.mem_read_u8(instructions[1] as u16)
+        ),
+        AddressingMode::Absolute => format!(
+          "${:04X} = {:02X}",
+          u16::from_le_bytes([instructions[1], instructions[2]]),
+          self.mem_read_u8(instructions[1] as u16)
+        ),
+        AddressingMode::Absolute_X => format!(
+          "${:04X},X @ {:04X} = {:02X}",
+          u16::from_le_bytes([instructions[1], instructions[2]]),
+          u16::from_le_bytes([instructions[1], instructions[2]]).wrapping_add(self.reg_x as u16),
+          self.mem_read_u8(instructions[1] as u16)
+        ),
+        AddressingMode::Absolute_Y => format!(
+          "${:04X},Y @ {:04X} = {:02X}",
+          u16::from_le_bytes([instructions[1], instructions[2]]),
+          u16::from_le_bytes([instructions[1], instructions[2]]).wrapping_add(self.reg_y as u16),
+          self.mem_read_u8(instructions[1] as u16)
+        ),
+        AddressingMode::Indirect => {
+          let ptr = u16::from_le_bytes([instructions[1], instructions[2]]);
+          let lo = self.mem_read_u8(ptr) as u16;
+          let hi = self.mem_read_u8(ptr & 0xFF00 | ((ptr as u8).wrapping_add(1) as u16)) as u16; // Replicate the page boundary bug in the original 6502
+          let ptr_2 = hi << 8 | lo;
+          format!("(${:04X}) = {:04X}", ptr, ptr_2,)
+        }
+        AddressingMode::Indirect_X => {
+          let ptr = instructions[1].wrapping_add(self.reg_x);
+          let lo = self.mem_read_u8(ptr as u16) as u16;
+          let hi = self.mem_read_u8(ptr.wrapping_add(1) as u16) as u16;
+          let ptr_2 = hi << 8 | lo;
+          format!(
+            "(${:02X},X) @ {:02X} = {:04X} = {:02X}",
+            instructions[1],
+            ptr,
+            ptr_2,
+            self.mem_read_u8(ptr_2),
+          )
+        }
+        AddressingMode::Indirect_Y => {
+          let ptr = self.mem_read_u8(instructions[1] as u16);
+          let lo = self.mem_read_u8(ptr as u16) as u16;
+          let hi = self.mem_read_u8((ptr).wrapping_add(1) as u16) as u16;
+          let ptr_2 = hi << 8 | lo;
+          let ptr_final = ptr_2.wrapping_add(self.reg_y as u16);
+          format!(
+            "(${:02X}),Y = {:04X} @ {:04X} = {:02X}",
+            ptr,
+            ptr_2,
+            ptr_final,
+            self.mem_read_u8(ptr_final),
+          )
+        }
+        _ => format!("{}", op.code),
+      }
+    );
+
+    write!(
+      f,
+      "{:5} {:9} {:31} {}",
+      pc_str,
+      code_str,
+      ins_str,
+      format!(
+        "A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X}",
+        self.reg_a, self.reg_x, self.reg_y, self.status, self.stack
+      )
+    )
   }
 }
 

@@ -41,7 +41,7 @@ impl Memory for Bus {
       }
       PPU_START..=PPU_END => {
         let _mirror_down_addr = addr & 0b00100000_00000111;
-        todo!("PPU is not supported yet")
+        todo!("PPU is not supported yet (tried to access at {})", addr);
       }
       PRG_START..=END => self.read_prg_rom(addr),
       _ => {

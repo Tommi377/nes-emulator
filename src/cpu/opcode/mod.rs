@@ -20,6 +20,7 @@ pub mod system_functions;
 #[allow(dead_code)]
 pub struct OP {
   pub code: u8,
+  pub name: &'static str,
   pub op: fn(&mut CPU, AddressingMode),
   pub mode: AddressingMode,
   pub bytes: u8,

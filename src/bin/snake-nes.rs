@@ -39,6 +39,7 @@ fn main() {
 
   cpu.run_with_callback(move |cpu: &mut CPU| {
     handle_user_input(cpu, &mut event_pump);
+    println!("{:?}", cpu);
     cpu.mem_write_u8(0xfe, rng.random_range(1..16));
 
     if read_screen_state(cpu, &mut screen_state) {
