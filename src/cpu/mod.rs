@@ -131,10 +131,7 @@ impl CPU {
 
   fn try_get_address(&mut self, mode: &AddressingMode) -> Option<u16> {
     match mode {
-      AddressingMode::Immediate
-      | AddressingMode::Relative
-      | AddressingMode::NoneAddressing
-      | AddressingMode::Accumulator => {
+      AddressingMode::Relative | AddressingMode::NoneAddressing | AddressingMode::Accumulator => {
         return None;
       }
       _ => Some(self.get_address(mode)),
@@ -219,7 +216,7 @@ impl Debug for CPU {
       .join(" ");
 
     let ins_str = format!(
-      "{} {}",
+      "{: >4} {}",
       op.name,
       match op.mode {
         AddressingMode::Immediate => format!("#${:02X}", instructions[1]),
@@ -311,7 +308,8 @@ impl Debug for CPU {
           )
         }
         AddressingMode::Relative => {
-          let jump_addr = self.pc.wrapping_add(instructions[1] as u16 + 2);
+          let offset = instructions[1] as i8;
+          let jump_addr = self.pc.wrapping_add(offset as u16 + 2);
           format!("${:04X}", jump_addr)
         }
         AddressingMode::Accumulator => "A".to_string(),
@@ -321,7 +319,7 @@ impl Debug for CPU {
 
     write!(
       f,
-      "{:5} {:9} {:31} {}",
+      "{:5} {:8} {:32} {}",
       pc_str,
       code_str,
       ins_str,
