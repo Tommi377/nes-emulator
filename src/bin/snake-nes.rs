@@ -6,6 +6,8 @@ use sdl2::{EventPump, event::Event, keyboard::Keycode, pixels::PixelFormatEnum};
 use std::env;
 use std::fs;
 
+const DEFAULT_FILE_PATH: &str = "snake.nes";
+
 fn main() {
   let sdl_context = sdl2::init().unwrap();
   let video_subsystem = sdl_context.video().unwrap();
@@ -26,7 +28,7 @@ fn main() {
 
   let args: Vec<String> = env::args().collect();
 
-  let file_path = &args[1];
+  let file_path = args.get(1).map(|s| s.as_str()).unwrap_or(DEFAULT_FILE_PATH);
   let raw = fs::read(file_path).expect("Should have been able to read the file");
 
   let rom = Rom::new(&raw).unwrap();
