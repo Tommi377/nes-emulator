@@ -12,6 +12,12 @@ pub struct Bus {
   rom: Option<Rom>,
 }
 
+impl Default for Bus {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Bus {
   pub fn new() -> Self {
     Bus {
@@ -73,7 +79,7 @@ impl Bus {
       Some(rom) => {
         addr -= 0x8000;
         if rom.prg_rom.len() == 0x4000 && addr >= 0x4000 {
-          addr = addr % 0x4000;
+          addr %= 0x4000;
         }
         rom.prg_rom[addr as usize]
       }

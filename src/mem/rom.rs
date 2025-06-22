@@ -18,8 +18,8 @@ pub struct Rom {
 }
 
 impl Rom {
-  pub fn new(raw: &Vec<u8>) -> Result<Rom, String> {
-    if &raw[0..4] != NES_TAG {
+  pub fn new(raw: &[u8]) -> Result<Rom, String> {
+    if raw[0..4] != NES_TAG {
       return Err("File is not in iNES file format".to_string());
     }
 
@@ -53,8 +53,8 @@ impl Rom {
     Ok(Rom {
       prg_rom: raw[prg_rom_start..(prg_rom_start + prg_rom_size)].to_vec(),
       chr_rom: raw[chr_rom_start..(chr_rom_start + chr_rom_size)].to_vec(),
-      mapper: mapper,
-      screen_mirroring: screen_mirroring,
+      mapper,
+      screen_mirroring,
     })
   }
 
@@ -63,7 +63,7 @@ impl Rom {
     prg_rom[0x7FFC] = (pc & 0xFF) as u8; // Store low byte of PC
     prg_rom[0x7FFD] = (pc >> 8) as u8; // Store high byte of PC
     Rom {
-      prg_rom: prg_rom, // Default PRG-ROM
+      prg_rom, // Default PRG-ROM
       chr_rom: vec![],
       mapper: 0,
       screen_mirroring: Mirroring::Horizontal,

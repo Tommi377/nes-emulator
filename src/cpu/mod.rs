@@ -21,6 +21,12 @@ pub struct CPU {
   pub bus: Bus,
 }
 
+impl Default for CPU {
+  fn default() -> Self {
+    Self::new()
+  }
+}
+
 impl CPU {
   pub fn new() -> Self {
     CPU {
@@ -121,8 +127,8 @@ impl CPU {
         let lo = self.mem_read_u8(ptr as u16) as u16;
         let hi = self.mem_read_u8((ptr).wrapping_add(1) as u16) as u16;
         let deref_base = hi << 8 | lo;
-        let deref = deref_base.wrapping_add(self.reg_y as u16);
-        deref
+
+        deref_base.wrapping_add(self.reg_y as u16)
       }
       AddressingMode::Accumulator => panic!("mode {:?} is not an address", addressing_mode),
       _ => panic!("mode {:?} is not supported", addressing_mode),
@@ -132,14 +138,14 @@ impl CPU {
   fn try_get_address(&mut self, mode: &AddressingMode) -> Option<u16> {
     match mode {
       AddressingMode::Relative | AddressingMode::NoneAddressing | AddressingMode::Accumulator => {
-        return None;
+        None
       }
       _ => Some(self.get_address(mode)),
     }
   }
 
   fn get_address_and_value(&mut self, mode: &AddressingMode) -> (u16, u8) {
-    let address = self.get_address(&mode);
+    let address = self.get_address(mode);
     let value = self.mem_read_u8(address);
     (address, value)
   }
@@ -304,7 +310,7 @@ impl Debug for CPU {
             instructions[1],
             ptr,
             ptr_final,
-            self.mem_read_u8(ptr_final as u16),
+            self.mem_read_u8(ptr_final),
           )
         }
         AddressingMode::Relative => {
@@ -317,17 +323,12 @@ impl Debug for CPU {
       }
     );
 
-    write!(
-      f,
-      "{:5} {:8} {:32} {}",
-      pc_str,
-      code_str,
-      ins_str,
-      format!(
-        "A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X}",
-        self.reg_a, self.reg_x, self.reg_y, self.status, self.stack
-      )
-    )
+    let reg_str = format!(
+      "A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X}",
+      self.reg_a, self.reg_x, self.reg_y, self.status, self.stack
+    );
+
+    write!(f, "{:5} {:8} {:32} {}", pc_str, code_str, ins_str, reg_str)
   }
 }
 

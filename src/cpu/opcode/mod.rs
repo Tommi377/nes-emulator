@@ -56,7 +56,7 @@ mod opcode_test {
   #[test]
   fn test_opcode_not_found() {
     let result = std::panic::catch_unwind(|| {
-      let _op: OP = 0xFF.into(); // Non-existent opcode
+      let _op: OP = 0x02.into(); // Non-existent opcode
     });
     assert!(result.is_err());
   }
