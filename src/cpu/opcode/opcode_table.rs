@@ -1,6 +1,6 @@
 use crate::cpu::opcode::{
   OP, arithmetic::*, branches::*, combined_ops::*, increment_decrements::*, jumps::*,
-  load_store::*, logical::*, register_transfers::*, shifts::*, stack_operations::*,
+  load_store::*, logical::*, register_transfers::*, rmw::*, shifts::*, stack_operations::*,
   status_flag_changes::*, system_functions::*,
 };
 
@@ -264,6 +264,63 @@ pub(crate) static OPCODE_TABLE: [Option<OP>; 256] = {
   table[0x97] = Some(OP { code: 0x97, name: "*SAX", op: sax, mode: ZeroPage_Y,      bytes: 2, cycles: 4 });
   table[0x8F] = Some(OP { code: 0x8F, name: "*SAX", op: sax, mode: Absolute,        bytes: 3, cycles: 4 });
   table[0x83] = Some(OP { code: 0x83, name: "*SAX", op: sax, mode: Indirect_X,      bytes: 2, cycles: 6 });
+  
+  // DCP
+  table[0xC7] = Some(OP { code: 0xC7, name: "*DCP", op: dcp, mode: ZeroPage,        bytes: 2, cycles: 5 });
+  table[0xD7] = Some(OP { code: 0xD7, name: "*DCP", op: dcp, mode: ZeroPage_X,      bytes: 2, cycles: 6 });
+  table[0xCF] = Some(OP { code: 0xCF, name: "*DCP", op: dcp, mode: Absolute,        bytes: 3, cycles: 6 });
+  table[0xDF] = Some(OP { code: 0xDF, name: "*DCP", op: dcp, mode: Absolute_X,      bytes: 3, cycles: 7 });
+  table[0xDB] = Some(OP { code: 0xDB, name: "*DCP", op: dcp, mode: Absolute_Y,      bytes: 3, cycles: 7 });
+  table[0xC3] = Some(OP { code: 0xC3, name: "*DCP", op: dcp, mode: Indirect_X,      bytes: 2, cycles: 8 });
+  table[0xD3] = Some(OP { code: 0xD3, name: "*DCP", op: dcp, mode: Indirect_Y,      bytes: 2, cycles: 8 });
+
+  // ISC/ISB
+  table[0xE7] = Some(OP { code: 0xE7, name: "*ISB", op: isc, mode: ZeroPage,        bytes: 2, cycles: 5 });
+  table[0xF7] = Some(OP { code: 0xF7, name: "*ISB", op: isc, mode: ZeroPage_X,      bytes: 2, cycles: 6 });
+  table[0xEF] = Some(OP { code: 0xEF, name: "*ISB", op: isc, mode: Absolute,        bytes: 3, cycles: 6 });
+  table[0xFF] = Some(OP { code: 0xFF, name: "*ISB", op: isc, mode: Absolute_X,      bytes: 3, cycles: 7 });
+  table[0xFB] = Some(OP { code: 0xFB, name: "*ISB", op: isc, mode: Absolute_Y,      bytes: 3, cycles: 7 });
+  table[0xE3] = Some(OP { code: 0xE3, name: "*ISB", op: isc, mode: Indirect_X,      bytes: 2, cycles: 8 });
+  table[0xF3] = Some(OP { code: 0xF3, name: "*ISB", op: isc, mode: Indirect_Y,      bytes: 2, cycles: 8 });
+
+  // RLA
+  table[0x27] = Some(OP { code: 0x27, name: "*RLA", op: rla, mode: ZeroPage,        bytes: 2, cycles: 5 });
+  table[0x37] = Some(OP { code: 0x37, name: "*RLA", op: rla, mode: ZeroPage_X,      bytes: 2, cycles: 6 });
+  table[0x2F] = Some(OP { code: 0x2F, name: "*RLA", op: rla, mode: Absolute,        bytes: 3, cycles: 6 });
+  table[0x3F] = Some(OP { code: 0x3F, name: "*RLA", op: rla, mode: Absolute_X,      bytes: 3, cycles: 7 });
+  table[0x3B] = Some(OP { code: 0x3B, name: "*RLA", op: rla, mode: Absolute_Y,      bytes: 3, cycles: 7 });
+  table[0x23] = Some(OP { code: 0x23, name: "*RLA", op: rla, mode: Indirect_X,      bytes: 2, cycles: 8 });
+  table[0x33] = Some(OP { code: 0x33, name: "*RLA", op: rla, mode: Indirect_Y,      bytes: 2, cycles: 8 });
+
+  // RRA
+  table[0x67] = Some(OP { code: 0x67, name: "*RRA", op: rra, mode: ZeroPage,        bytes: 2, cycles: 5 });
+  table[0x77] = Some(OP { code: 0x77, name: "*RRA", op: rra, mode: ZeroPage_X,      bytes: 2, cycles: 6 });
+  table[0x6F] = Some(OP { code: 0x6F, name: "*RRA", op: rra, mode: Absolute,        bytes: 3, cycles: 6 });
+  table[0x7F] = Some(OP { code: 0x7F, name: "*RRA", op: rra, mode: Absolute_X,      bytes: 3, cycles: 7 });
+  table[0x7B] = Some(OP { code: 0x7B, name: "*RRA", op: rra, mode: Absolute_Y,      bytes: 3, cycles: 7 });
+  table[0x63] = Some(OP { code: 0x63, name: "*RRA", op: rra, mode: Indirect_X,      bytes: 2, cycles: 8 });
+  table[0x73] = Some(OP { code: 0x73, name: "*RRA", op: rra, mode: Indirect_Y,      bytes: 2, cycles: 8 });
+
+  // SLO
+  table[0x07] = Some(OP { code: 0x07, name: "*SLO", op: slo, mode: ZeroPage,        bytes: 2, cycles: 5 });
+  table[0x17] = Some(OP { code: 0x17, name: "*SLO", op: slo, mode: ZeroPage_X,      bytes: 2, cycles: 6 });
+  table[0x0F] = Some(OP { code: 0x0F, name: "*SLO", op: slo, mode: Absolute,        bytes: 3, cycles: 6 });
+  table[0x1F] = Some(OP { code: 0x1F, name: "*SLO", op: slo, mode: Absolute_X,      bytes: 3, cycles: 7 });
+  table[0x1B] = Some(OP { code: 0x1B, name: "*SLO", op: slo, mode: Absolute_Y,      bytes: 3, cycles: 7 });
+  table[0x03] = Some(OP { code: 0x03, name: "*SLO", op: slo, mode: Indirect_X,      bytes: 2, cycles: 8 });
+  table[0x13] = Some(OP { code: 0x13, name: "*SLO", op: slo, mode: Indirect_Y,      bytes: 2, cycles: 8 });
+  
+  // SRE
+  table[0x47] = Some(OP { code: 0x47, name: "*SRE", op: sre, mode: ZeroPage,        bytes: 2, cycles: 5 });
+  table[0x57] = Some(OP { code: 0x57, name: "*SRE", op: sre, mode: ZeroPage_X,      bytes: 2, cycles: 6 });
+  table[0x4F] = Some(OP { code: 0x4F, name: "*SRE", op: sre, mode: Absolute,        bytes: 3, cycles: 6 });
+  table[0x5F] = Some(OP { code: 0x5F, name: "*SRE", op: sre, mode: Absolute_X,      bytes: 3, cycles: 7 });
+  table[0x5B] = Some(OP { code: 0x5B, name: "*SRE", op: sre, mode: Absolute_Y,      bytes: 3, cycles: 7 });
+  table[0x43] = Some(OP { code: 0x43, name: "*SRE", op: sre, mode: Indirect_X,      bytes: 2, cycles: 8 });
+  table[0x53] = Some(OP { code: 0x53, name: "*SRE", op: sre, mode: Indirect_Y,      bytes: 2, cycles: 8 });
+
+  // Duplicated
+  table[0xEB] = Some(OP { code: 0xEB, name: "*SBC", op: sbc, mode: Immediate,       bytes: 2, cycles: 2 });
 
   table
 };

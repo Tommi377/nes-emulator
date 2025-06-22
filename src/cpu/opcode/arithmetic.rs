@@ -41,7 +41,7 @@ pub(crate) fn cpy(cpu: &mut CPU, mode: AddressingMode) {
   );
 }
 
-fn cpu_addition_with_carry(cpu: &mut CPU, value: u8) {
+pub(crate) fn cpu_addition_with_carry(cpu: &mut CPU, value: u8) {
   let carry_in = if cpu.get_flag(StatusFlag::Carry) {
     1u8
   } else {
