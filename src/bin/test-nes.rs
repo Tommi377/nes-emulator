@@ -18,6 +18,6 @@ fn main() {
   cpu.stack = 0xFD; // Set the stack pointer to a specific value for testing
 
   cpu.run_with_callback(move |cpu: &mut CPU| {
-    println!("{:?}", cpu);
+    println!("{}", cpu.print_state());
   });
 }

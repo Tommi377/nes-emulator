@@ -48,6 +48,7 @@ checksum = "d8cfeafaffdbc32176b64fb251369d52ea9f0a8fbc6f8759edffef7b525d64bb"
 name = "nes-emulator"
 version = "0.1.0"
 dependencies = [
+ "bitflags 2.9.1",
  "rand",
  "sdl2",
 ]

@@ -203,10 +203,8 @@ impl CPU {
       result & 0b1000_0000 != 0,
     );
   }
-}
 
-impl Debug for CPU {
-  fn fmt(&self, f: &mut Formatter<'_>) -> ::core::fmt::Result {
+  pub fn print_state(&mut self) -> String {
     let op: OP = self.mem_read_u8(self.pc).into();
 
     let pc_str = format!("{:04X}", self.pc);
@@ -328,19 +326,19 @@ impl Debug for CPU {
       self.reg_a, self.reg_x, self.reg_y, self.status, self.stack
     );
 
-    write!(f, "{:5} {:8} {:32} {}", pc_str, code_str, ins_str, reg_str)
+    format!("{:5} {:8} {:32} {}", pc_str, code_str, ins_str, reg_str)
   }
 }
 
 impl Memory for CPU {
-  fn mem_read_u8(&self, addr: u16) -> u8 {
+  fn mem_read_u8(&mut self, addr: u16) -> u8 {
     self.bus.mem_read_u8(addr)
   }
 
   fn mem_write_u8(&mut self, addr: u16, data: u8) {
     self.bus.mem_write_u8(addr, data)
   }
-  fn mem_read_u16(&self, pos: u16) -> u16 {
+  fn mem_read_u16(&mut self, pos: u16) -> u16 {
     self.bus.mem_read_u16(pos)
   }
 
