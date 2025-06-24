@@ -1,7 +1,14 @@
-use crate::{mem::rom::Mirroring, ppu::register::*};
+use crate::{
+  mem::rom::Mirroring,
+  ppu::register::{
+    PPUMASK, PPUSTATUS, control_reg::PPUCTRL, oam_address::OAMADDRESS, ppu_address::PPUADDRESS,
+    scroll::PPUSCROLL,
+  },
+};
 
 pub mod register;
 
+#[allow(dead_code)]
 pub struct PPU {
   pub chr_rom: Vec<u8>,        // $0000–$1FFF (8KB CHR ROM)
   pub vram: [u8; 2048],        // $2000–$2FFF (2KB VRAM, mirrored to 4KB)
@@ -10,42 +17,49 @@ pub struct PPU {
 
   pub mirroring: Mirroring,
 
-  addr: AddressRegister,
-  ctrl: ControlRegister,
+  ctrl: PPUCTRL,
+  mask: PPUMASK,
+  status: PPUSTATUS,
+  oam_addr: OAMADDRESS,
+  scroll: PPUSCROLL,
+  ppu_addr: PPUADDRESS,
+  ppu_data_buf: u8,
 
   // Internal registers
   v_reg: u16,  // Current VRAM address (15 bits)
   t_reg: u16,  // Temporary VRAM address (15 bits)
   x_reg: u8,   // Fine X scroll (3 bits)
   w_reg: bool, // Write toggle (0 or 1)
-
-  internal_data_buf: u8,
 }
 
 impl PPU {
   pub fn new(chr_rom: Vec<u8>, mirroring: Mirroring) -> Self {
     PPU {
-      chr_rom: chr_rom,
-      mirroring: mirroring,
+      chr_rom,
+      mirroring,
       vram: [0; 2048],
       oam_data: [0; 64 * 4],
       palette_table: [0; 32],
-      addr: AddressRegister::new(),
-      ctrl: ControlRegister::new(),
+      ctrl: PPUCTRL::new(),
+      mask: PPUMASK::from_bits_truncate(0),
+      status: PPUSTATUS::from_bits_truncate(0),
+      oam_addr: OAMADDRESS::new(),
+      scroll: PPUSCROLL::new(),
+      ppu_addr: PPUADDRESS::new(),
+      ppu_data_buf: 0,
       v_reg: 0,
       t_reg: 0,
       x_reg: 0,
       w_reg: false,
-      internal_data_buf: 0,
     }
   }
 
   fn increment_vram_addr(&mut self) {
-    self.addr.increment(self.ctrl.vram_addr_increment());
+    self.ppu_addr.increment(self.ctrl.vram_addr_increment());
   }
 
   pub fn write_to_ppu_addr(&mut self, value: u8) {
-    self.addr.update(value, &mut self.w_reg);
+    self.ppu_addr.update(value, &mut self.w_reg);
   }
 
   pub fn write_to_ctrl(&mut self, value: u8) {
@@ -53,7 +67,7 @@ impl PPU {
   }
 
   pub fn write_to_data(&mut self, value: u8) {
-    let addr = self.addr.get();
+    let addr = self.ppu_addr.get();
     self.increment_vram_addr();
 
     match addr {
@@ -69,34 +83,58 @@ impl PPU {
         addr
       ),
       0x3f00..=0x3fff => {
-        self.palette_table[(addr - 0x3f00) as usize] = value;
+        let palette_index = (addr - 0x3f00) % 32; // Palette mirroring every 32 bytes
+        self.palette_table[palette_index as usize] = value;
       }
       _ => panic!("unexpected access to mirrored space {}", addr),
     }
   }
 
+  pub fn write_to_oam_data(&mut self, value: u8) {
+    let addr = self.oam_addr.get();
+    self.oam_addr.increment();
+    self.oam_data[addr as usize] = value;
+  }
+
+  pub fn write_to_scroll(&mut self, value: u8) {
+    self.scroll.update(value, &mut self.w_reg);
+  }
+
+  pub fn read_status(&mut self) -> u8 {
+    self.w_reg = false;
+    self.status.bits()
+  }
+
   pub fn read_data(&mut self) -> u8 {
-    let addr = self.addr.get();
+    let addr = self.ppu_addr.get();
     self.increment_vram_addr();
 
     match addr {
       0..=0x1fff => {
-        let result = self.internal_data_buf;
-        self.internal_data_buf = self.chr_rom[addr as usize];
+        let result = self.ppu_data_buf;
+        self.ppu_data_buf = self.chr_rom[addr as usize];
         result
       }
       0x2000..=0x2fff => {
-        let result = self.internal_data_buf;
-        self.internal_data_buf = self.vram[self.mirror_vram_addr(addr) as usize];
+        let result = self.ppu_data_buf;
+        self.ppu_data_buf = self.vram[self.mirror_vram_addr(addr) as usize];
         result
       }
       0x3000..=0x3eff => panic!(
         "addr space 0x3000..0x3eff is not expected to be used, requested = {} ",
         addr
       ),
-      0x3f00..=0x3fff => self.palette_table[(addr - 0x3f00) as usize],
+      0x3f00..=0x3fff => {
+        let palette_index = (addr - 0x3f00) % 32;
+        self.palette_table[palette_index as usize]
+      }
       _ => panic!("unexpected access to mirrored space {}", addr),
     }
+  }
+
+  pub fn read_oam_data(&mut self) -> u8 {
+    let addr = self.oam_addr.get();
+    self.oam_data[addr as usize]
   }
 
   fn mirror_vram_addr(&self, addr: u16) -> u16 {
@@ -137,7 +175,7 @@ mod ppu_tests {
     assert_eq!(ppu.t_reg, 0);
     assert_eq!(ppu.x_reg, 0);
     assert_eq!(ppu.w_reg, false);
-    assert_eq!(ppu.internal_data_buf, 0);
+    assert_eq!(ppu.ppu_data_buf, 0);
 
     // Check that arrays are zero-initialized
     assert!(ppu.vram.iter().all(|&x| x == 0));
@@ -167,7 +205,7 @@ mod ppu_tests {
     ppu.write_to_ppu_addr(0x00);
 
     // Address should now be 0x2000
-    assert_eq!(ppu.addr.get(), 0x2000);
+    assert_eq!(ppu.ppu_addr.get(), 0x2000);
   }
 
   #[test]
@@ -311,9 +349,9 @@ mod ppu_tests {
     ppu.write_to_ppu_addr(0x20);
     ppu.write_to_ppu_addr(0x00);
 
-    let initial_addr = ppu.addr.get();
+    let initial_addr = ppu.ppu_addr.get();
     ppu.write_to_data(0x11);
-    let after_write_addr = ppu.addr.get();
+    let after_write_addr = ppu.ppu_addr.get();
 
     assert_eq!(after_write_addr, initial_addr + 1);
 
@@ -322,9 +360,9 @@ mod ppu_tests {
     ppu.write_to_ppu_addr(0x20);
     ppu.write_to_ppu_addr(0x00);
 
-    let initial_addr = ppu.addr.get();
+    let initial_addr = ppu.ppu_addr.get();
     ppu.write_to_data(0x22);
-    let after_write_addr = ppu.addr.get();
+    let after_write_addr = ppu.ppu_addr.get();
 
     assert_eq!(after_write_addr, initial_addr + 32);
   }
@@ -336,12 +374,12 @@ mod ppu_tests {
     // Test multiple address register writes
     ppu.write_to_ppu_addr(0x21);
     ppu.write_to_ppu_addr(0x34);
-    assert_eq!(ppu.addr.get(), 0x2134);
+    assert_eq!(ppu.ppu_addr.get(), 0x2134);
 
     // Next write should affect high byte again
     ppu.write_to_ppu_addr(0x25);
     ppu.write_to_ppu_addr(0x67);
-    assert_eq!(ppu.addr.get(), 0x2567);
+    assert_eq!(ppu.ppu_addr.get(), 0x2567);
   }
 
   #[test]
@@ -368,5 +406,174 @@ mod ppu_tests {
       let value = ppu.read_data();
       assert_eq!(value, i);
     }
+  }
+
+  #[test]
+  fn test_write_to_oam_addr() {
+    let mut ppu = create_test_ppu(Mirroring::Vertical);
+
+    // Test initial state
+    assert_eq!(ppu.oam_addr.get(), 0);
+
+    // Write to OAM address register
+    ppu.oam_addr.update(0x10);
+    assert_eq!(ppu.oam_addr.get(), 0x10);
+
+    ppu.oam_addr.update(0xFF);
+    assert_eq!(ppu.oam_addr.get(), 0xFF);
+  }
+
+  #[test]
+  fn test_write_to_oam_data() {
+    let mut ppu = create_test_ppu(Mirroring::Vertical);
+
+    // Set OAM address
+    ppu.oam_addr.update(0x10);
+
+    // Write data to OAM
+    ppu.write_to_oam_data(0xAB);
+
+    // Check that data was written and address incremented
+    assert_eq!(ppu.oam_data[0x10], 0xAB);
+    assert_eq!(ppu.oam_addr.get(), 0x11);
+
+    // Write another value
+    ppu.write_to_oam_data(0xCD);
+    assert_eq!(ppu.oam_data[0x11], 0xCD);
+    assert_eq!(ppu.oam_addr.get(), 0x12);
+  }
+
+  #[test]
+  fn test_read_oam_data() {
+    let mut ppu = create_test_ppu(Mirroring::Vertical);
+
+    // Write some test data to OAM
+    ppu.oam_addr.update(0x20);
+    ppu.write_to_oam_data(0x42);
+
+    // Set address back to read the data
+    ppu.oam_addr.update(0x20);
+    let data = ppu.read_oam_data();
+    assert_eq!(data, 0x42);
+
+    // Reading OAM data should not increment the address
+    assert_eq!(ppu.oam_addr.get(), 0x20);
+  }
+
+  #[test]
+  fn test_oam_address_wrap() {
+    let mut ppu = create_test_ppu(Mirroring::Vertical);
+
+    // Set address to 0xFF
+    ppu.oam_addr.update(0xFF);
+    assert_eq!(ppu.oam_addr.get(), 0xFF);
+
+    // Write data, should wrap to 0x00
+    ppu.write_to_oam_data(0x99);
+    assert_eq!(ppu.oam_addr.get(), 0x00);
+    assert_eq!(ppu.oam_data[0xFF], 0x99);
+  }
+
+  #[test]
+  fn test_write_to_scroll() {
+    let mut ppu = create_test_ppu(Mirroring::Vertical);
+
+    // Test initial w_reg state
+    assert_eq!(ppu.w_reg, false);
+
+    // First write should set X scroll
+    ppu.write_to_scroll(0x10);
+    assert_eq!(ppu.w_reg, true);
+
+    // Second write should set Y scroll
+    ppu.write_to_scroll(0x20);
+    assert_eq!(ppu.w_reg, false);
+
+    // Check scroll register value
+    assert_eq!(ppu.scroll.get(), 0x1020);
+  }
+
+  #[test]
+  fn test_read_status() {
+    let mut ppu = create_test_ppu(Mirroring::Vertical);
+
+    // Set w_reg to true
+    ppu.w_reg = true;
+
+    // Reading status should clear w_reg
+    let status = ppu.read_status();
+    assert_eq!(ppu.w_reg, false);
+    assert_eq!(status, ppu.status.bits());
+  }
+
+  #[test]
+  fn test_status_register_interaction() {
+    let mut ppu = create_test_ppu(Mirroring::Vertical);
+
+    // Set w_reg by writing to scroll
+    ppu.write_to_scroll(0x10);
+    assert_eq!(ppu.w_reg, true);
+
+    // Reading status should reset w_reg
+    ppu.read_status();
+    assert_eq!(ppu.w_reg, false);
+
+    // Next scroll write should affect X again (not Y)
+    ppu.write_to_scroll(0x30);
+    assert_eq!(ppu.w_reg, true);
+  }
+
+  #[test]
+  fn test_ctrl_register_features() {
+    let mut ppu = create_test_ppu(Mirroring::Vertical);
+
+    // Test VRAM increment functionality
+    ppu.write_to_ctrl(0x00); // Increment by 1
+    assert_eq!(ppu.ctrl.vram_addr_increment(), 1);
+
+    ppu.write_to_ctrl(0x04); // Increment by 32 (bit 2 set)
+    assert_eq!(ppu.ctrl.vram_addr_increment(), 32);
+
+    // Test other control bits are preserved
+    ppu.write_to_ctrl(0xFF);
+    assert_eq!(ppu.ctrl.bits(), 0xFF);
+    assert_eq!(ppu.ctrl.vram_addr_increment(), 32);
+  }
+
+  #[test]
+  fn test_palette_mirroring() {
+    let mut ppu = create_test_ppu(Mirroring::Vertical);
+
+    // Test writing to different palette addresses within valid range
+    for addr in [0x3F00, 0x3F01, 0x3F10, 0x3F1F] {
+      let high_byte = (addr >> 8) as u8;
+      let low_byte = (addr & 0xFF) as u8;
+
+      ppu.write_to_ppu_addr(high_byte);
+      ppu.write_to_ppu_addr(low_byte);
+      ppu.write_to_data(0x88);
+
+      let palette_index = (addr - 0x3F00) % 32;
+      assert_eq!(ppu.palette_table[palette_index as usize], 0x88);
+    }
+
+    // Test palette mirroring behavior
+    // Write to 0x3F20, which should mirror to 0x3F00
+    ppu.write_to_ppu_addr(0x3F);
+    ppu.write_to_ppu_addr(0x20);
+    ppu.write_to_data(0x99);
+    assert_eq!(ppu.palette_table[0], 0x99); // 0x3F20 % 32 = 0
+
+    // Write to 0x3F30, which should mirror to 0x3F10
+    ppu.write_to_ppu_addr(0x3F);
+    ppu.write_to_ppu_addr(0x30);
+    ppu.write_to_data(0xAA);
+    assert_eq!(ppu.palette_table[16], 0xAA); // 0x3F30 % 32 = 16
+
+    // Test reading from mirrored addresses
+    ppu.write_to_ppu_addr(0x3F);
+    ppu.write_to_ppu_addr(0x20);
+    let data = ppu.read_data();
+    assert_eq!(data, 0x99);
   }
 }

@@ -1,6 +1,6 @@
 pub mod opcode;
 
-use std::fmt::{Debug, Formatter};
+use std::fmt::Debug;
 
 use crate::{
   cpu::opcode::{OP, opcode_table::AddressingMode},
