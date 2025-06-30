@@ -30,25 +30,25 @@ bitflags! {
 }
 
 impl PPUCTRL {
-  pub fn new() -> Self {
-    PPUCTRL::from_bits_truncate(0b00000000)
-  }
-
-  pub fn vram_addr_increment(&self) -> u8 {
-    if !self.contains(PPUCTRL::VRAM_ADD_INCREMENT) {
-      1
-    } else {
-      32
+    pub fn new() -> Self {
+        PPUCTRL::from_bits_truncate(0b00000000)
     }
-  }
 
-  pub fn update(&mut self, data: u8) {
-    *self = PPUCTRL::from_bits_truncate(data);
-  }
+    pub fn vram_addr_increment(&self) -> u8 {
+        if !self.contains(PPUCTRL::VRAM_ADD_INCREMENT) {
+            1
+        } else {
+            32
+        }
+    }
+
+    pub fn update(&mut self, data: u8) {
+        *self = PPUCTRL::from_bits_truncate(data);
+    }
 }
 
 impl Default for PPUCTRL {
-  fn default() -> Self {
-    PPUCTRL::new()
-  }
+    fn default() -> Self {
+        PPUCTRL::new()
+    }
 }
