@@ -50,3 +50,49 @@ bitflags! {
     const VBLANK          = 0b10000000;
   }
 }
+
+impl PPUSTATUS {
+    pub fn is_vblank(&self) -> bool {
+        self.contains(PPUSTATUS::VBLANK)
+    }
+
+    pub fn set_vblank(&mut self, value: bool) {
+        self.set(PPUSTATUS::VBLANK, value);
+    }
+}
+
+#[cfg(test)]
+mod ppustatus_tests {
+    use super::*;
+
+    #[test]
+    fn test_ppustatus_is_vblank() {
+        let mut status = PPUSTATUS::empty();
+
+        // Initially not in VBlank
+        assert!(!status.is_vblank());
+
+        // Set VBlank flag
+        status.set(PPUSTATUS::VBLANK, true);
+        assert!(status.is_vblank());
+
+        // Clear VBlank flag
+        status.set(PPUSTATUS::VBLANK, false);
+        assert!(!status.is_vblank());
+    }
+
+    #[test]
+    fn test_ppustatus_set_vblank() {
+        let mut status = PPUSTATUS::empty();
+
+        // Set VBlank using helper method
+        status.set_vblank(true);
+        assert!(status.contains(PPUSTATUS::VBLANK));
+        assert!(status.is_vblank());
+
+        // Clear VBlank using helper method
+        status.set_vblank(false);
+        assert!(!status.contains(PPUSTATUS::VBLANK));
+        assert!(!status.is_vblank());
+    }
+}
