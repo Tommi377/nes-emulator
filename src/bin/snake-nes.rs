@@ -41,7 +41,6 @@ fn main() {
 
     cpu.run_with_callback(move |cpu: &mut CPU| {
         handle_user_input(cpu, &mut event_pump);
-        println!("{:?}", cpu);
         cpu.mem_write_u8(0xfe, rng.random_range(1..16));
 
         if read_screen_state(cpu, &mut screen_state) {
@@ -105,7 +104,7 @@ fn color(byte: u8) -> sdl2::pixels::Color {
     }
 }
 
-fn read_screen_state(cpu: &CPU, frame: &mut [u8; 32 * 3 * 32]) -> bool {
+fn read_screen_state(cpu: &mut CPU, frame: &mut [u8; 32 * 3 * 32]) -> bool {
     let mut frame_idx = 0;
     let mut update = false;
     for i in 0x0200..0x0600 {

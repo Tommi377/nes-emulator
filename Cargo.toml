@@ -6,7 +6,10 @@ edition = "2024"
 [dependencies]
 bitflags = "2.9.1"
 rand = "0.9.1"
-sdl2 = { version = "0.37.0", optional = true }
+sdl2 = { version = "0.37.0", optional = true, features = [
+    "bundled",
+    "static-link",
+] }
 
 [[bin]]
 name = "snake-binary"
@@ -19,3 +22,6 @@ required-features = ["sdl2"]
 [[bin]]
 name = "chr-rom"
 required-features = ["sdl2"]
+
+[features]
+sdl2 = ["dep:sdl2"]

@@ -1,26 +1,26 @@
 use std::{env, fs};
 
-use nes_emulator::{cpu::CPU, mem::rom::Rom};
-use sdl2::{event::Event, keyboard::Keycode, pixels::PixelFormatEnum, sys::KeyCode};
+use nes_emulator::mem::rom::Rom;
+use sdl2::{event::Event, keyboard::Keycode, pixels::PixelFormatEnum};
 
-const DEFAULT_FILE_PATH: &str = "nestest.nes";
+const DEFAULT_FILE_PATH: &str = "mario.nes";
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
     let window = video_subsystem
-        .window("Snake game", (32.0 * 10.0) as u32, (32.0 * 10.0) as u32)
+        .window("chr pallette", (256 * 3) as u32, (260 * 3) as u32)
         .position_centered()
         .build()
         .unwrap();
 
     let mut canvas = window.into_canvas().present_vsync().build().unwrap();
     let mut event_pump = sdl_context.event_pump().unwrap();
-    canvas.set_scale(10.0, 10.0).unwrap();
+    canvas.set_scale(3.0, 3.0).unwrap();
 
     let creator = canvas.texture_creator();
     let mut texture = creator
-        .create_texture_target(PixelFormatEnum::RGB24, 32, 32)
+        .create_texture_target(PixelFormatEnum::RGB24, 256, 260)
         .unwrap();
 
     let args: Vec<String> = env::args().collect();
@@ -30,8 +30,28 @@ fn main() {
 
     let rom = Rom::new(&raw).unwrap();
 
-    let tile_frame = show_tile(&rom.chr_rom, 1, 0);
-    texture.update(None, &tile_frame.data, 256 * 3).unwrap();
+    for b in 0..2 {
+        for i in 0..16 {
+            for j in 0..16 {
+                let tile_frame = show_tile(&rom.chr_rom, 0, b * 256 + i * 8 + j);
+                texture
+                    .update(
+                        Some(sdl2::rect::Rect::new(
+                            j as i32 * 8 + b as i32 * (8 * 16),
+                            i as i32 * 8,
+                            8,
+                            8,
+                        )),
+                        &tile_frame.data,
+                        256 * 3,
+                    )
+                    .unwrap();
+            }
+        }
+    }
+
+    // let tile_frame = show_tile(&rom.chr_rom, 0, 0);
+    // texture.update(None, &tile_frame.data, 256 * 3).unwrap();
     canvas.copy(&texture, None, None).unwrap();
     canvas.present();
 
@@ -57,15 +77,15 @@ fn show_tile(chr_rom: &[u8], bank: usize, tile_n: usize) -> Frame {
         let mut plane_lo = tile[y];
         let mut plane_hi = tile[y + 8];
 
-        for x in 0..8 {
+        for x in (0..8).rev() {
             let value = (plane_lo & 1) | (plane_hi & 1) << 1;
-            plane_lo <<= 1;
-            plane_hi <<= 1;
+            plane_lo >>= 1;
+            plane_hi >>= 1;
             let rgb = match value {
-                0 => SYSTEM_PALLETE[0x01],
-                1 => SYSTEM_PALLETE[0x23],
+                0 => SYSTEM_PALLETE[0x0F],
+                1 => SYSTEM_PALLETE[0x06],
                 2 => SYSTEM_PALLETE[0x27],
-                3 => SYSTEM_PALLETE[0x30],
+                3 => SYSTEM_PALLETE[0x19],
                 _ => panic!("can't be"),
             };
             frame.set_pixel(x, y, rgb);

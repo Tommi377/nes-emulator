@@ -1,13 +1,40 @@
 [target.aarch64-apple-darwin]
 rustflags = [
-  "-L", "/opt/homebrew/opt/sdl2/lib",
-  "-L", "/opt/homebrew/lib",
-  "-L", "/usr/local/lib",
+  "-L",
+  "/opt/homebrew/opt/sdl2/lib",
+  "-L",
+  "/opt/homebrew/lib",
+  "-L",
+  "/usr/local/lib",
 ]
 
 [target.x86_64-apple-darwin]
 rustflags = [
-  "-L", "/opt/homebrew/opt/sdl2/lib",
-  "-L", "/opt/homebrew/lib",
-  "-L", "/usr/local/lib",
+  "-L",
+  "/opt/homebrew/opt/sdl2/lib",
+  "-L",
+  "/opt/homebrew/lib",
+  "-L",
+  "/usr/local/lib",
 ]
+
+[target.x86_64-pc-windows-msvc]
+rustflags = [
+  "-L",
+  "native=C:/Windows/System32",
+  "-l",
+  "advapi32",
+  "-l",
+  "ole32",
+  "-l",
+  "oleaut32",
+  "-l",
+  "imm32",
+  "-l",
+  "winmm",
+  "-l",
+  "version",
+]
+
+[env]
+CMAKE_POLICY_VERSION_MINIMUM = "3.5"
