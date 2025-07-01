@@ -15,3 +15,7 @@ required-features = ["sdl2"]
 [[bin]]
 name = "snake-nes"
 required-features = ["sdl2"]
+
+[[bin]]
+name = "chr-rom"
+required-features = ["sdl2"]
