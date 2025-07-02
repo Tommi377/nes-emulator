@@ -1,4 +1,4 @@
-use crate::cpu::{CPU, opcode::opcode_table::AddressingMode};
+use crate::cpu::{CPU, opcode::AddressingMode};
 
 pub(crate) fn jmp(cpu: &mut CPU, mode: AddressingMode) {
     let addr = cpu.get_address(&mode);
@@ -19,10 +19,7 @@ pub(crate) fn rts(cpu: &mut CPU, _mode: AddressingMode) {
 #[cfg(test)]
 mod jump_tests {
     use super::*;
-    use crate::{
-        cpu::{CPU, opcode::opcode_table::AddressingMode},
-        mem::Memory,
-    };
+    use crate::{cpu::CPU, mem::Memory};
     mod jmp_tests {
         use super::*;
 
@@ -175,7 +172,7 @@ mod jump_tests {
 
     mod jsr_tests {
         use super::*;
-        use crate::cpu::{CPU, opcode::opcode_table::AddressingMode};
+        use crate::cpu::CPU;
 
         #[test]
         fn test_jsr_absolute() {
@@ -318,7 +315,7 @@ mod jump_tests {
 
     mod rts_tests {
         use super::*;
-        use crate::cpu::{CPU, opcode::opcode_table::AddressingMode};
+        use crate::cpu::CPU;
 
         #[test]
         fn test_rts_basic() {
@@ -444,7 +441,7 @@ mod jump_tests {
 
     mod jsr_rts_integration_tests {
         use super::*;
-        use crate::cpu::{CPU, opcode::opcode_table::AddressingMode};
+        use crate::cpu::CPU;
 
         #[test]
         fn test_jsr_rts_round_trip() {

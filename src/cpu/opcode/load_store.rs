@@ -1,5 +1,5 @@
 use crate::{
-    cpu::{CPU, opcode::opcode_table::AddressingMode},
+    cpu::{CPU, opcode::AddressingMode},
     mem::Memory,
 };
 

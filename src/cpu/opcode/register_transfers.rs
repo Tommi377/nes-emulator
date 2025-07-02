@@ -1,4 +1,4 @@
-use crate::cpu::{CPU, opcode::opcode_table::AddressingMode};
+use crate::cpu::{CPU, opcode::AddressingMode};
 
 pub(crate) fn tax(cpu: &mut CPU, _mode: AddressingMode) {
     cpu.reg_x = cpu.reg_a;

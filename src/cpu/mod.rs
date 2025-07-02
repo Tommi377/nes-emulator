@@ -1,9 +1,10 @@
 pub mod opcode;
+pub mod opcode_table;
 
 use std::fmt::Debug;
 
 use crate::{
-    cpu::opcode::{OP, opcode_table::AddressingMode},
+    cpu::opcode::{AddressingMode, OP},
     mem::{Memory, bus::Bus, rom::Rom},
     utils::set_bit,
 };

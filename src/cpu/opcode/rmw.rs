@@ -1,7 +1,7 @@
 use crate::{
     cpu::{
         CPU, StatusFlag,
-        opcode::{arithmetic::cpu_addition_with_carry, opcode_table::AddressingMode},
+        opcode::{AddressingMode, arithmetic::cpu_addition_with_carry},
     },
     mem::Memory,
 };
@@ -76,7 +76,7 @@ pub(crate) fn sre(cpu: &mut CPU, mode: AddressingMode) {
 #[cfg(test)]
 mod rmw_tests {
     use super::*;
-    use crate::cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode};
+    use crate::cpu::{CPU, StatusFlag};
 
     // DCP (DEC + CMP) Tests
     mod dcp_tests {

@@ -1,5 +1,5 @@
 use crate::{
-    cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode},
+    cpu::{CPU, StatusFlag, opcode::AddressingMode},
     utils::set_bit,
 };
 

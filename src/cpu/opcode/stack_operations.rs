@@ -1,4 +1,4 @@
-use crate::cpu::{CPU, opcode::opcode_table::AddressingMode};
+use crate::cpu::{CPU, opcode::AddressingMode};
 
 pub(crate) fn pha(cpu: &mut CPU, _mode: AddressingMode) {
     cpu.stack_push_value_u8(cpu.reg_a);

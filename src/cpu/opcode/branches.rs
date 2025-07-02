@@ -1,4 +1,4 @@
-use crate::cpu::{CPU, opcode::opcode_table::AddressingMode};
+use crate::cpu::{CPU, opcode::AddressingMode};
 
 pub(crate) fn bcs(cpu: &mut CPU, _mode: AddressingMode) {
     cpu.branch(cpu.get_flag(crate::cpu::StatusFlag::Carry));

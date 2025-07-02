@@ -1,7 +1,4 @@
-use crate::cpu::{
-    CPU,
-    opcode::opcode_table::{AddressingMode, OPCODE_TABLE},
-};
+use crate::cpu::{CPU, opcode_table::OPCODE_TABLE};
 
 pub mod arithmetic;
 pub mod branches;
@@ -10,7 +7,6 @@ pub mod increment_decrements;
 pub mod jumps;
 pub mod load_store;
 pub mod logical;
-pub mod opcode_table;
 pub mod register_transfers;
 pub mod rmw;
 pub mod shifts;
@@ -41,6 +37,25 @@ impl From<u8> for OP {
             panic!("Opcode 0x{:02X} not found in opcode table", value);
         })
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[allow(non_camel_case_types)]
+#[allow(dead_code)]
+pub enum AddressingMode {
+    Immediate,
+    ZeroPage,
+    ZeroPage_X,
+    ZeroPage_Y,
+    Absolute,
+    Absolute_X,
+    Absolute_Y,
+    Indirect,
+    Indirect_X,
+    Indirect_Y,
+    Accumulator,
+    Relative,
+    NoneAddressing,
 }
 
 #[cfg(test)]

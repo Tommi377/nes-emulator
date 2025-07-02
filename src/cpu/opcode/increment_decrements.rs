@@ -1,5 +1,5 @@
 use crate::{
-    cpu::{CPU, opcode::opcode_table::AddressingMode},
+    cpu::{CPU, opcode::AddressingMode},
     mem::Memory,
 };
 
@@ -37,7 +37,7 @@ pub(crate) fn dey(cpu: &mut CPU, _mode: AddressingMode) {
 #[cfg(test)]
 mod increment_decrements_tests {
     use super::*;
-    use crate::cpu::{StatusFlag, opcode::opcode_table::AddressingMode};
+    use crate::cpu::StatusFlag;
 
     // INC Tests
     mod inc_tests {

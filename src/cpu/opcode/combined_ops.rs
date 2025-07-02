@@ -2,8 +2,8 @@ use crate::{
     cpu::{
         CPU, StatusFlag,
         opcode::{
+            AddressingMode,
             logical::and,
-            opcode_table::AddressingMode,
             shifts::{lsr, ror},
         },
     },
@@ -80,7 +80,7 @@ pub(crate) fn sax(cpu: &mut CPU, mode: AddressingMode) {
 #[cfg(test)]
 mod combined_ops_tests {
     use super::*;
-    use crate::cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode};
+    use crate::cpu::{CPU, StatusFlag};
     use crate::mem::Memory;
 
     // Helper function to set up CPU with known state

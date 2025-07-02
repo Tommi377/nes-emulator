@@ -1,5 +1,5 @@
 use crate::{
-    cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode},
+    cpu::{CPU, StatusFlag, opcode::AddressingMode},
     mem::Memory,
 };
 
@@ -77,7 +77,7 @@ fn resolve_value_and_address(cpu: &mut CPU, mode: AddressingMode) -> (u8, Option
 #[cfg(test)]
 mod shift_tests {
     use super::*;
-    use crate::cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode};
+    use crate::cpu::{CPU, StatusFlag};
 
     // ASL (Arithmetic Shift Left) Tests
     #[test]

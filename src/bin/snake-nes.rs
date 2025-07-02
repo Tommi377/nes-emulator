@@ -36,7 +36,7 @@ fn main() {
     cpu.insert_rom(rom);
     cpu.reset();
 
-    let mut screen_state = [0 as u8; 32 * 3 * 32];
+    let mut screen_state = [0; 32 * 3 * 32];
     let mut rng = rand::rng();
 
     cpu.run_with_callback(move |cpu: &mut CPU| {

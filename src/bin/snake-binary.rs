@@ -45,7 +45,7 @@ fn main() {
         0x60, 0xa2, 0x00, 0xea, 0xea, 0xca, 0xd0, 0xfb, 0x60,
     ];
 
-    let mut screen_state = [0 as u8; 32 * 3 * 32];
+    let mut screen_state = [0; 32 * 3 * 32];
     let mut rng = rand::rng();
 
     let mut cpu = CPU::new();
@@ -116,7 +116,7 @@ fn color(byte: u8) -> sdl2::pixels::Color {
     }
 }
 
-fn read_screen_state(cpu: &CPU, frame: &mut [u8; 32 * 3 * 32]) -> bool {
+fn read_screen_state(cpu: &mut CPU, frame: &mut [u8; 32 * 3 * 32]) -> bool {
     let mut frame_idx = 0;
     let mut update = false;
     for i in 0x0200..0x0600 {

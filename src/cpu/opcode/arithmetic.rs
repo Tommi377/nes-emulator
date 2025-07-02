@@ -1,4 +1,4 @@
-use crate::cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode};
+use crate::cpu::{CPU, StatusFlag, opcode::AddressingMode};
 
 pub(crate) fn adc(cpu: &mut CPU, mode: AddressingMode) {
     let (_, value) = cpu.get_address_and_value(&mode);
@@ -190,7 +190,7 @@ mod arithmetic_tests {
 
     mod sbc_tests {
         use super::*;
-        use crate::cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode};
+        use crate::cpu::{CPU, StatusFlag};
 
         #[test]
         fn test_sbc_basic_subtraction() {
@@ -396,7 +396,7 @@ mod arithmetic_tests {
 
     mod cmp_tests {
         use super::*;
-        use crate::cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode};
+        use crate::cpu::{CPU, StatusFlag};
 
         #[test]
         fn test_cmp_equal_values() {
@@ -509,7 +509,7 @@ mod arithmetic_tests {
 
     mod cpx_tests {
         use super::*;
-        use crate::cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode};
+        use crate::cpu::{CPU, StatusFlag};
 
         #[test]
         fn test_cpx_equal_values() {
@@ -640,7 +640,7 @@ mod arithmetic_tests {
 
     mod cpy_tests {
         use super::*;
-        use crate::cpu::{CPU, StatusFlag, opcode::opcode_table::AddressingMode};
+        use crate::cpu::{CPU, StatusFlag};
 
         #[test]
         fn test_cpy_equal_values() {
